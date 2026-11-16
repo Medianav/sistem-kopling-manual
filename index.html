@@ -7,6 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"><style id="__livecodes_styles__"></style><script src="https://cdn.jsdelivr.net/npm/es-module-shims@1.10.0/dist/es-module-shims.js" async=""></script>
 <script>window.livecodes = window.livecodes || {};</script><title>Sistem Kopling Manual</title><meta name="title" content="Sistem Kopling Manual"><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="stylesheet" href="./style.css"><script src="https://cdn.jsdelivr.net/npm/es-module-shims@1.10.0/dist/es-module-shims.js" async=""></script>
+<script>window.livecodes = window.livecodes || {};</script><title>Untitled Project</title><meta name="title" content="Untitled Project"><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><style id="__livecodes_styles__"></style><script src="https://cdn.jsdelivr.net/npm/es-module-shims@1.10.0/dist/es-module-shims.js" async=""></script>
+<script>window.livecodes = window.livecodes || {};</script><title>Sistem Kopling Manual</title><meta name="title" content="Sistem Kopling Manual"><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="stylesheet" href="./style.css"><script src="https://cdn.jsdelivr.net/npm/es-module-shims@1.10.0/dist/es-module-shims.js" async=""></script>
 <script>window.livecodes = window.livecodes || {};</script><title>sistem kopling</title><meta name="title" content="sistem kopling"><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"><style id="__livecodes_styles__"></style><script src="https://cdn.jsdelivr.net/npm/es-module-shims@1.10.0/dist/es-module-shims.js" async=""></script>
 <script>window.livecodes = window.livecodes || {};</script><title>Sistem Kopling Manual</title><meta name="title" content="Sistem Kopling Manual"><meta charset="UTF-8">
@@ -3554,21 +3558,52 @@
                 this.registerPart('shifter_rails', 'Shift Rails, Interlock & Shift Forks', 'Tiga batang rel pemindah independen yang dilengkapi pin interlock pencegah masuknya dua gigi sekaligus serta tuas H-Pattern.', shifterGroup);
 
                 // ===============================================================
-                // D. MARKER ALIRAN TENAGA (TORQUE FLOW ARROWS - SELALU TERLIHAT DI DEPAN KOMPONEN)
+                // D. VISUALISASI ALIRAN TENAGA (TORQUE FLOW PIPE + PANAH ARAH)
                 // ===============================================================
-                const markerGeo = new THREE.ConeGeometry(0.075, 0.18, 12);
-                markerGeo.rotateZ(-Math.PI / 2);
-                for (let i = 0; i < 24; i++) {
+                this.torqueFlowGroup = new THREE.Group();
+                this.scene.add(this.torqueFlowGroup);
+
+                // Pipa lintasan aliran torsi bercahaya sebagai pemandu jalur yang jelas
+                this.torqueTubeMat = new THREE.MeshBasicMaterial({
+                    color: 0x10b981,
+                    transparent: true,
+                    opacity: 0.42,
+                    depthTest: false
+                });
+                this.torqueTubeMesh = null;
+                this.lastTorqueSig = '';
+
+                // Penunjuk arah aliran (Conical Arrowheads mengarah ke +Z lokal agar lookAt() sejajar 100% dengan arah aliran)
+                const arrowGeo = new THREE.ConeGeometry(0.085, 0.24, 16);
+                arrowGeo.rotateX(Math.PI / 2);
+                for (let i = 0; i < 20; i++) {
                     const mMat = new THREE.MeshBasicMaterial({
                         color: 0x10b981,
                         depthTest: false,
                         transparent: true,
-                        opacity: 0.95
+                        opacity: 0.96
                     });
-                    const m = new THREE.Mesh(markerGeo, mMat);
-                    m.renderOrder = 999;
-                    this.scene.add(m);
-                    this.torqueMarkers.push({ mesh: m, mat: mMat, phase: i / 24 });
+                    const m = new THREE.Mesh(arrowGeo, mMat);
+                    m.renderOrder = 1000;
+                    this.torqueFlowGroup.add(m);
+                    this.torqueMarkers.push({ mesh: m, mat: mMat, phase: i / 20 });
+                }
+
+                // Titik simpul (joint spheres) pada belokan jalur aliran torsi agar sudut siku terbaca jelas
+                this.torqueJointSpheres = [];
+                const jointGeo = new THREE.SphereGeometry(0.065, 12, 12);
+                for (let j = 0; j < 10; j++) {
+                    const jMat = new THREE.MeshBasicMaterial({
+                        color: 0x10b981,
+                        depthTest: false,
+                        transparent: true,
+                        opacity: 0.9
+                    });
+                    const jMesh = new THREE.Mesh(jointGeo, jMat);
+                    jMesh.renderOrder = 999;
+                    jMesh.visible = false;
+                    this.torqueFlowGroup.add(jMesh);
+                    this.torqueJointSpheres.push({ mesh: jMesh, mat: jMat });
                 }
             }
 
@@ -3677,6 +3712,10 @@
                     // Arahkan kamera ke tampak samping unit kopling agar penampang dalam terlihat jelas
                     this.controls.target.set(-0.95, 0.0, 0.0);
                     this.camera.position.set(-0.95, 0.65, 4.15);
+                } else if (mode === 'torque_flow') {
+                    // Arahkan kamera menyamping & sedikit menyerong untuk melihat seluruh aliran torsi dari mesin sampai output shaft
+                    this.controls.target.set(0.85, -0.25, 0.0);
+                    this.camera.position.set(0.85, 1.15, 6.25);
                 } else if (mode === 'hyd_cutaway' || mode === 'fluid_flow') {
                     // Zoom framing optimal sehingga seluruh rangkaian hidrolik (Pedal -> Master -> Pipa -> Slave -> Fork) terlihat utuh
                     this.controls.target.set(-2.25, -0.35, 1.05);
@@ -3795,161 +3834,229 @@
                 this.syncObj12.baulkMat.color.setHex(isBaulking && (gearbox.targetGear === '1' || gearbox.targetGear === '2') ? 0xef4444 : 0xf59e0b);
                 this.syncObj5R.baulkMat.color.setHex(isBaulking && (gearbox.targetGear === '5' || gearbox.targetGear === 'R') ? 0xef4444 : 0xf59e0b);
 
-                // 7. Pergeseran Nyata 3 Shift Rails, Interlock Pins, Synchronizer Sleeves & Tuas H-Pattern
-                const d34 = gearbox.railOffsets.r34 * 0.16;
-                const d12 = gearbox.railOffsets.r12 * 0.16;
-                const d5R = gearbox.railOffsets.r5R * 0.16;
+                // 7. Pergeseran 3 Shift Rails, Interlock Pins, Sliding Sleeves & Tuas H-Pattern 3D
+                const r34X = gearbox.railOffsets.r34 * 0.14;
+                const r12X = gearbox.railOffsets.r12 * 0.14;
+                const r5RX = gearbox.railOffsets.r5R * 0.14;
 
-                this.syncObj34.sleeveGroup.position.x = d34;
-                this.syncObj12.sleeveGroup.position.x = d12;
-                this.syncObj5R.sleeveGroup.position.x = d5R;
+                this.railGroup34.position.x = r34X;
+                this.railGroup12.position.x = r12X;
+                this.railGroup5R.position.x = r5RX;
 
-                this.railGroup34.position.x = d34;
-                this.railGroup12.position.x = d12;
-                this.railGroup5R.position.x = d5R;
+                this.syncObj34.sleeveGroup.position.x = r34X;
+                this.syncObj12.sleeveGroup.position.x = r12X;
+                this.syncObj5R.sleeveGroup.position.x = r5RX;
 
-                // Sorot warna shift fork & rail yang sedang aktif berpindah gigi agar animasi perpindahan terlihat tegas
-                const activeRailKey = gearbox.getRailForGear(gearbox.syncState === 'neutralizing' ? gearbox.currentGear : gearbox.targetGear);
-                const isShiftingNow = (gearbox.syncState === 'neutralizing' || gearbox.syncState === 'baulking' || gearbox.syncState === 'locking');
-                this.railGroup34.children[1].material.color.setHex(activeRailKey === 'r34' && isShiftingNow ? 0xfacc15 : 0x3b82f6);
-                this.railGroup12.children[1].material.color.setHex(activeRailKey === 'r12' && isShiftingNow ? 0xfacc15 : 0x8b5cf6);
-                this.railGroup5R.children[1].material.color.setHex(activeRailKey === 'r5R' && isShiftingNow ? 0xfacc15 : 0x14b8a6);
+                this.interlockPinLeft.position.z = -0.11 + gearbox.interlockPinOffsets.left * 0.04;
+                this.interlockPinRight.position.z = 0.11 + gearbox.interlockPinOffsets.right * 0.04;
 
-                // Pergeseran pin interlock pengunci rel lain
-                this.interlockPinLeft.position.z = -0.11 + gearbox.interlockPinOffsets.left * 0.045;
-                this.interlockPinRight.position.z = 0.11 + gearbox.interlockPinOffsets.right * 0.045;
+                // Gerakan Tuas H-Pattern 3D
+                const g = gearbox.targetGear;
+                let leverRollX = 0; // Kiri-kanan pemilihan gate (1-2 vs 3-4 vs 5-R)
+                let leverPitchZ = 0; // Maju-mundur masuk gigi
+                if (g === '1' || g === '2') leverRollX = -0.22;
+                if (g === '5' || g === 'R') leverRollX = 0.22;
+                if (g === '1' || g === '3' || g === '5') leverPitchZ = 0.24;
+                if (g === '2' || g === '4' || g === 'R') leverPitchZ = -0.24;
+                this.hLeverGroup.rotation.x += (leverRollX - this.hLeverGroup.rotation.x) * 0.18;
+                this.hLeverGroup.rotation.z += (leverPitchZ - this.hLeverGroup.rotation.z) * 0.18;
 
-                // Orientasi Tuas H-Pattern 3D
-                const gearTiltMap = {
-                    'N': { rx: 0, rz: 0 },
-                    '1': { rx: -0.25, rz: 0.25 },
-                    '2': { rx: -0.25, rz: -0.25 },
-                    '3': { rx: 0, rz: 0.25 },
-                    '4': { rx: 0, rz: -0.25 },
-                    '5': { rx: 0.25, rz: 0.25 },
-                    'R': { rx: 0.25, rz: -0.25 }
-                };
-                const tilt = gearTiltMap[gearbox.targetGear] || { rx: 0, rz: 0 };
-                this.hLeverGroup.rotation.x += (tilt.rx - this.hLeverGroup.rotation.x) * 0.18;
-                this.hLeverGroup.rotation.z += (tilt.rz - this.hLeverGroup.rotation.z) * 0.18;
+                // 8. Visualisasi Aliran Torsi (Torque Flow) Jalur Mekanis Jelas & Terarah
+                const showTorque = (this.visMode === 'torque_flow' || this.visMode === 'normal');
+                this.torqueFlowGroup.visible = showTorque;
 
-                // 8. Marker Aliran Torsi (Torque Flow Visualization) - Terlihat di Semua Mode saat Mesin Hidup
-                const hasClutchTorque = dynamics.inputShaftRpm > 5;
-                const isGearLocked = (gearbox.currentGear !== 'N' && gearbox.syncState === 'engaged');
+                if (showTorque) {
+                    const clutchHasTorque = dynamics.transmittedTorqueNm > 1.0 && dynamics.inputShaftRpm > 5;
+                    const gearEngaged = (gearbox.currentGear !== 'N' && gearbox.syncState === 'engaged');
 
-                // Tentukan koordinat X roda gigi aktif yang sedang mentransfer torsi ke Main Shaft
-                const gearActiveXMap = {
-                    '1': 2.03,
-                    '2': 1.50,
-                    '3': 0.97,
-                    '4': 0.70,
-                    '5': 2.53,
-                    'R': 2.91
-                };
-                const meshX = gearActiveXMap[gearbox.currentGear] || 1.76;
+                    let pathPoints = [];
+                    let activeColor = 0x10b981; // Hijau terang untuk torsi mengalir utuh
+                    let flowSpeed = Math.max(0.28, (dynamics.flywheelRpm / 1600));
 
-                // Jalur koordinat 3D aliran tenaga putar:
-                // Tahap 1: Flywheel -> Clutch Disc -> Input Shaft -> Input Drive Gear (0.42)
-                // Tahap 2 (jika gigi aktif): Turun ke Countershaft (-0.92) -> Roda gigi aktif (meshX) -> Naik ke Main Shaft (0.45) -> Output Shaft (3.45)
-                // (Khusus Gigi 4 Direct: langsung dari Input Drive Gear ke Synchronizer 3-4 -> Main Shaft)
-                const torquePathPoints = [];
-                if (!isGearLocked) {
-                    torquePathPoints.push(
-                        new THREE.Vector3(-1.35, 0.36, 0.25),
-                        new THREE.Vector3(-1.14, 0.36, 0.25),
-                        new THREE.Vector3(-0.35, 0.36, 0.25),
-                        new THREE.Vector3(0.42, 0.36, 0.25)
-                    );
-                } else if (gearbox.currentGear === '4') {
-                    torquePathPoints.push(
-                        new THREE.Vector3(-1.35, 0.36, 0.25),
-                        new THREE.Vector3(-0.35, 0.36, 0.25),
-                        new THREE.Vector3(0.42, 0.36, 0.25),
-                        new THREE.Vector3(0.70, 0.36, 0.25),
-                        new THREE.Vector3(2.05, 0.36, 0.25),
-                        new THREE.Vector3(3.40, 0.36, 0.25)
-                    );
-                } else {
-                    torquePathPoints.push(
-                        new THREE.Vector3(-1.35, 0.36, 0.25),
-                        new THREE.Vector3(-0.35, 0.36, 0.25),
-                        new THREE.Vector3(0.42, 0.36, 0.25),
-                        new THREE.Vector3(0.42, -0.78, 0.25),
-                        new THREE.Vector3(meshX, -0.78, 0.25),
-                        new THREE.Vector3(meshX, 0.36, 0.25),
-                        new THREE.Vector3(3.40, 0.36, 0.25)
-                    );
-                }
-
-                // Filter titik yang terlalu berdekatan (< 0.001) agar CatmullRomCurve3 tidak menghasilkan segmen nol / NaN
-                const cleanTorquePoints = [torquePathPoints[0]];
-                for (let i = 1; i < torquePathPoints.length; i++) {
-                    if (torquePathPoints[i].distanceToSquared(cleanTorquePoints[cleanTorquePoints.length - 1]) > 0.0001) {
-                        cleanTorquePoints.push(torquePathPoints[i]);
-                    }
-                }
-                if (cleanTorquePoints.length < 2) {
-                    cleanTorquePoints.push(cleanTorquePoints[0].clone().add(new THREE.Vector3(0.1, 0, 0)));
-                }
-
-                const flowCurve = new THREE.CatmullRomCurve3(cleanTorquePoints);
-                const rawRpm = Number.isFinite(dynamics.inputShaftRpm) ? dynamics.inputShaftRpm : 0;
-                const safeTimeSec = Number.isFinite(timeSec) ? timeSec : 0;
-                const flowSpeed = Math.max(0.25, Math.min(2.2, rawRpm / 950));
-                const showMarkers = hasClutchTorque;
-
-                this.torqueMarkers.forEach(tm => {
-                    tm.mesh.visible = showMarkers;
-                    if (!showMarkers) return;
-
-                    let u = (tm.phase + safeTimeSec * flowSpeed * 0.45) % 1.0;
-                    if (!Number.isFinite(u) || u < 0) u = 0;
-                    if (u > 0.999) u = 0.999;
-
-                    const pos = flowCurve.getPointAt(u);
-                    const tangent = flowCurve.getTangentAt(u);
-
-                    if (!pos || !tangent) return;
-
-                    tm.mesh.position.copy(pos);
-                    // Arahkan kerucut panah mengikuti arah aliran garis lengkung
-                    const targetLook = pos.clone().add(tangent);
-                    tm.mesh.lookAt(targetLook);
-                    tm.mesh.rotateY(Math.PI / 2);
-
-                    // Warna hijau terang untuk aliran tenaga aktif, oranye untuk gigi mundur (R)
-                    if (isGearLocked && gearbox.currentGear === 'R') {
-                        tm.mat.color.setHex(0xf97316);
-                    } else if (isGearLocked) {
-                        tm.mat.color.setHex(0x10b981);
+                    if (!clutchHasTorque) {
+                        // Kopling diinjak penuh / terputus: aliran torsi berhenti di celah antara Flywheel dan Clutch Disc
+                        activeColor = 0xf59e0b; // Amber peringatan aliran berhenti di kopling
+                        pathPoints = [
+                            new THREE.Vector3(-1.72, 0.24, 0.24),
+                            new THREE.Vector3(-1.35, 0.24, 0.24),
+                            new THREE.Vector3(-1.24, 0.24, 0.24)
+                        ];
+                    } else if (!gearEngaged) {
+                        // Kopling terhubung tetapi transmisi Netral: torsi masuk ke Input Shaft -> Countershaft lalu berhenti (tidak ke Output)
+                        activeColor = 0x38bdf8; // Biru cyan untuk putaran standby di countershaft
+                        pathPoints = [
+                            new THREE.Vector3(-1.72, 0.18, 0.22), // Crankshaft
+                            new THREE.Vector3(-1.35, 0.18, 0.22), // Flywheel
+                            new THREE.Vector3(-1.14, 0.18, 0.22), // Clutch Disc
+                            new THREE.Vector3(-0.35, 0.18, 0.22), // Input Shaft
+                            new THREE.Vector3(0.42, 0.18, 0.22),  // Input Drive Gear (20T)
+                            new THREE.Vector3(0.42, -0.74, 0.22), // Turun ke Counter Driven Gear (32T)
+                            new THREE.Vector3(2.85, -0.74, 0.22)  // Sepanjang Countershaft (berputar bebas)
+                        ];
                     } else {
-                        tm.mat.color.setHex(0x0ea5e9);
-                    }
-                });
+                        // Kopling terhubung & Gigi Transmisi Masuk: lintasan torsi lengkap dari Mesin -> Kopling -> Gigi Terpilih -> Output Shaft
+                        const cg = gearbox.currentGear;
+                        if (cg === '4') {
+                            // Direct Drive 1:1 -> Input Shaft langsung dikunci ke Main Shaft melalui Synchronizer 3-4
+                            pathPoints = [
+                                new THREE.Vector3(-1.72, 0.18, 0.22),
+                                new THREE.Vector3(-1.14, 0.18, 0.22),
+                                new THREE.Vector3(0.42, 0.18, 0.22),
+                                new THREE.Vector3(0.70, 0.18, 0.22),  // Synchronizer Sleeve 3-4 (Direct Lock)
+                                new THREE.Vector3(1.95, 0.18, 0.22),  // Main Shaft
+                                new THREE.Vector3(3.45, 0.18, 0.22)   // Output Shaft
+                            ];
+                        } else if (cg === 'R') {
+                            // Gigi Mundur -> Input -> Countershaft -> Reverse Gear -> Reverse Idler -> Main Reverse Gear -> Output
+                            pathPoints = [
+                                new THREE.Vector3(-1.72, 0.18, 0.22),
+                                new THREE.Vector3(-1.14, 0.18, 0.22),
+                                new THREE.Vector3(0.42, 0.18, 0.22),
+                                new THREE.Vector3(0.42, -0.74, 0.22),  // Input Drive ke Counter Driven
+                                new THREE.Vector3(2.91, -0.74, 0.22),  // Sepanjang Countershaft ke Gigi R Counter
+                                new THREE.Vector3(2.91, -0.46, -0.32), // Naik menyilang ke Reverse Idler Gear
+                                new THREE.Vector3(2.91, 0.18, 0.22),   // Naik ke Main Reverse Gear
+                                new THREE.Vector3(2.72, 0.18, 0.22),   // Dikunci Synchronizer Sleeve 5-R
+                                new THREE.Vector3(3.45, 0.18, 0.22)    // Output Shaft (arah balik)
+                            ];
+                        } else {
+                            // Gigi Maju 1, 2, 3, 5 -> Input -> Countershaft -> Pasangan Gigi Terpilih -> Synchronizer -> Output
+                            const gearXMap = { '3': 0.97, '2': 1.50, '1': 2.03, '5': 2.53 };
+                            const syncXMap = { '3': 0.70, '2': 1.76, '1': 1.76, '5': 2.72 };
+                            const gx = gearXMap[cg] || 2.03;
+                            const sx = syncXMap[cg] || 1.76;
 
+                            pathPoints = [
+                                new THREE.Vector3(-1.72, 0.18, 0.22), // Crankshaft
+                                new THREE.Vector3(-1.14, 0.18, 0.22), // Flywheel & Clutch Disc
+                                new THREE.Vector3(0.42, 0.18, 0.22),  // Input Shaft & Input Drive Gear
+                                new THREE.Vector3(0.42, -0.74, 0.22), // Mesh turun ke Counter Driven Gear
+                                new THREE.Vector3(gx, -0.74, 0.22),   // Sepanjang Countershaft ke Gigi Counter terpilih
+                                new THREE.Vector3(gx, 0.18, 0.22),    // Mesh naik ke Gigi Main terpilih
+                                new THREE.Vector3(sx, 0.18, 0.22),    // Dikunci oleh Synchronizer Sleeve ke Main Shaft
+                                new THREE.Vector3(3.45, 0.18, 0.22)   // Keluar menuju Output Shaft
+                            ];
+                        }
+                    }
+
+                    // Bangun poliline piecewise-linear (jarak kumulatif presisi) agar arah panah lurus sejajar komponen
+                    const segLengths = [];
+                    let totalLen = 0;
+                    for (let s = 0; s < pathPoints.length - 1; s++) {
+                        const d = pathPoints[s].distanceTo(pathPoints[s + 1]);
+                        segLengths.push(d);
+                        totalLen += d;
+                    }
+
+                    // Perbarui pipa jalur lintasan bercahaya saat rute gigi/kopling berubah
+                    const sig = `${clutchHasTorque ? 1 : 0}_${gearEngaged ? gearbox.currentGear : 'N'}`;
+                    if (sig !== this.lastTorqueSig) {
+                        this.lastTorqueSig = sig;
+                        if (this.torqueTubeMesh) {
+                            this.torqueFlowGroup.remove(this.torqueTubeMesh);
+                            this.torqueTubeMesh.geometry.dispose();
+                            this.torqueTubeMesh = null;
+                        }
+                        if (pathPoints.length >= 2 && totalLen > 0.05) {
+                            // Buat kurva jalur bertingkat (CatmullRom dengan tension rendah agar sudut belokan tetap tegas & rapi)
+                            const pathCurve = new THREE.CatmullRomCurve3(pathPoints, false, 'catmullrom', 0.08);
+                            const tubeGeo = new THREE.TubeGeometry(pathCurve, 64, 0.032, 10, false);
+                            this.torqueTubeMesh = new THREE.Mesh(tubeGeo, this.torqueTubeMat);
+                            this.torqueTubeMesh.renderOrder = 998;
+                            this.torqueFlowGroup.add(this.torqueTubeMesh);
+                        }
+                    }
+                    if (this.torqueTubeMat) {
+                        this.torqueTubeMat.color.setHex(activeColor);
+                        this.torqueTubeMat.opacity = (this.visMode === 'torque_flow') ? 0.52 : 0.30;
+                    }
+
+                    // Tampilkan titik simpul pada setiap titik belokan jalur torsi
+                    this.torqueJointSpheres.forEach((js, idx) => {
+                        if (idx < pathPoints.length) {
+                            js.mesh.visible = true;
+                            js.mesh.position.copy(pathPoints[idx]);
+                            js.mat.color.setHex(activeColor);
+                        } else {
+                            js.mesh.visible = false;
+                        }
+                    });
+
+                    // Animasikan panah arah aliran menyusuri segmen secara halus & konsisten
+                    const arrowCount = Math.max(4, Math.min(this.torqueMarkers.length, Math.round(totalLen * 3.2)));
+                    this.torqueMarkers.forEach((mk, idx) => {
+                        if (idx >= arrowCount || totalLen <= 0.05) {
+                            mk.mesh.visible = false;
+                            return;
+                        }
+                        mk.mesh.visible = true;
+                        mk.mat.color.setHex(activeColor);
+
+                        const u = ((idx / arrowCount) + timeSec * flowSpeed * 0.32) % 1.0;
+                        const targetDist = u * totalLen;
+
+                        let accDist = 0;
+                        let segIdx = 0;
+                        while (segIdx < segLengths.length - 1 && accDist + segLengths[segIdx] < targetDist) {
+                            accDist += segLengths[segIdx];
+                            segIdx++;
+                        }
+
+                        const segLen = Math.max(0.0001, segLengths[segIdx]);
+                        const localT = Math.min(1, Math.max(0, (targetDist - accDist) / segLen));
+                        const pA = pathPoints[segIdx];
+                        const pB = pathPoints[segIdx + 1];
+
+                        mk.mesh.position.lerpVectors(pA, pB, localT);
+                        mk.mesh.lookAt(pB);
+                    });
+                }
+            }
+
+            render() {
                 this.controls.update();
                 this.renderer.render(this.scene, this.camera);
             }
         }
 
-        // KOORDINATOR UTAMA SIMULATOR CAD 3D
-        const simSystem = {
-            hydraulic: new HydraulicPhysicsEngine(),
-            kinematics: new MechanicalKinematicsEngine(),
-            dynamics: new RotationalDynamicsEngine(),
-            gearbox: new GearboxSimulationEngine(),
-            visualizer: null,
-            isPlaying: true,
-            isInitialized: false,
-            animFrameId: null,
-            lastTime: 0,
-            totalTime: 0,
-            speedMultiplier: 1.0,
-            loadTorqueNm: 35,
-            pedalTargetVal: 0,
-            pedalCurrentVal: 0,
-            isPedalAnimating: false
-        };
+        // MODUL 6: CONTROLLER UTAMA SIMULATOR & UI SYNCHRONIZER
+        let simHydraulic = null;
+        let simKinematics = null;
+        let simDynamics = null;
+        let simGearbox = null;
+        let simVisualizer = null;
+        let simAnimFrameId = null;
+        let isSimRunning = true;
+        let isCadDarkTheme = false;
+        let lastSimTimestamp = 0;
+        let simTotalTime = 0;
+        let targetPedalAnimation = null;
+
+        function toggleCadTheme() {
+            isCadDarkTheme = !isCadDarkTheme;
+            const modal = document.getElementById('modal-cad-3d');
+            const icon = document.getElementById('sim-theme-icon');
+            const label = document.getElementById('sim-theme-label');
+            const btn = document.getElementById('sim-btn-theme');
+
+            if (modal) {
+                modal.classList.toggle('cad-dark-theme', isCadDarkTheme);
+            }
+            if (icon && label && btn) {
+                if (isCadDarkTheme) {
+                    icon.className = "fa-solid fa-sun";
+                    label.innerText = "Light";
+                    btn.className = "px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 text-[11px] font-extrabold flex items-center gap-1 shadow-sm";
+                } else {
+                    icon.className = "fa-solid fa-moon";
+                    label.innerText = "Dark";
+                    btn.className = "px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] font-bold flex items-center gap-1 shadow-sm";
+                }
+            }
+            if (simVisualizer) {
+                simVisualizer.setTheme(isCadDarkTheme);
+            }
+        }
 
         function openCadFullscreenModal() {
             const modal = document.getElementById('modal-cad-3d');
@@ -3958,21 +4065,26 @@
             modal.classList.add('flex');
             document.body.style.overflow = 'hidden';
 
-            if (!simSystem.isInitialized) {
+            if (!simVisualizer) {
+                simHydraulic = new HydraulicPhysicsEngine();
+                simKinematics = new MechanicalKinematicsEngine();
+                simDynamics = new RotationalDynamicsEngine();
+                simGearbox = new GearboxSimulationEngine();
                 const container = document.getElementById('cad-canvas-container');
-                simSystem.visualizer = new ThreeJsCadVisualizer(container);
-                simSystem.isInitialized = true;
-                updateGearButtonsUI('N');
-                onSimParamChange();
+                simVisualizer = new ThreeJsCadVisualizer(container);
+                simVisualizer.setTheme(isCadDarkTheme);
+                window.addEventListener('resize', onSimWindowResize);
             }
 
             setTimeout(() => {
-                if (simSystem.visualizer) simSystem.visualizer.onResize();
+                if (simVisualizer) simVisualizer.onResize();
             }, 60);
 
-            if (!simSystem.animFrameId) {
-                simSystem.lastTime = performance.now();
-                simSystem.animFrameId = requestAnimationFrame(simLoop);
+            isSimRunning = true;
+            updatePlayButtonUI();
+            lastSimTimestamp = performance.now();
+            if (!simAnimFrameId) {
+                simAnimFrameId = requestAnimationFrame(simLoop);
             }
         }
 
@@ -3982,80 +4094,64 @@
                 modal.classList.add('hidden');
                 modal.classList.remove('flex', 'cad-pure-3d');
             }
-            const btnExitPure = document.getElementById('btn-exit-pure-3d');
-            if (btnExitPure) {
-                btnExitPure.classList.add('hidden');
-                btnExitPure.classList.remove('flex');
+            const exitBtn = document.getElementById('btn-exit-pure-3d');
+            if (exitBtn) {
+                exitBtn.classList.add('hidden');
+                exitBtn.classList.remove('flex');
             }
             document.body.style.overflow = '';
-            if (simSystem.animFrameId) {
-                cancelAnimationFrame(simSystem.animFrameId);
-                simSystem.animFrameId = null;
+            isSimRunning = false;
+            if (simAnimFrameId) {
+                cancelAnimationFrame(simAnimFrameId);
+                simAnimFrameId = null;
             }
         }
 
         function togglePureCadFullscreen() {
             const modal = document.getElementById('modal-cad-3d');
-            const btnExitPure = document.getElementById('btn-exit-pure-3d');
+            const exitBtn = document.getElementById('btn-exit-pure-3d');
             if (!modal) return;
 
             const isPure = modal.classList.toggle('cad-pure-3d');
-            if (btnExitPure) {
+            if (exitBtn) {
                 if (isPure) {
-                    btnExitPure.classList.remove('hidden');
-                    btnExitPure.classList.add('flex');
+                    exitBtn.classList.remove('hidden');
+                    exitBtn.classList.add('flex');
                 } else {
-                    btnExitPure.classList.add('hidden');
-                    btnExitPure.classList.remove('flex');
+                    exitBtn.classList.add('hidden');
+                    exitBtn.classList.remove('flex');
                 }
             }
-
             setTimeout(() => {
-                if (simSystem.visualizer) simSystem.visualizer.onResize();
+                if (simVisualizer) simVisualizer.onResize();
             }, 60);
         }
 
-        function toggleCadTheme() {
+        function onSimWindowResize() {
             const modal = document.getElementById('modal-cad-3d');
-            const icon = document.getElementById('sim-theme-icon');
-            const label = document.getElementById('sim-theme-label');
-            const btn = document.getElementById('sim-btn-theme');
-            if (!modal) return;
-
-            const isDark = modal.classList.toggle('cad-dark-theme');
-            if (isDark) {
-                if (icon) icon.className = "fa-solid fa-sun";
-                if (label) label.innerText = "Light";
-                if (btn) btn.className = "px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 text-[11px] font-bold flex items-center gap-1 shadow-sm";
-            } else {
-                if (icon) icon.className = "fa-solid fa-moon";
-                if (label) label.innerText = "Dark";
-                if (btn) btn.className = "px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] font-bold flex items-center gap-1 shadow-sm";
-            }
-
-            if (simSystem.visualizer) {
-                simSystem.visualizer.setTheme(isDark);
+            if (modal && !modal.classList.contains('hidden') && simVisualizer) {
+                simVisualizer.onResize();
             }
         }
 
-        window.addEventListener('resize', () => {
-            const modal = document.getElementById('modal-cad-3d');
-            if (modal && !modal.classList.contains('hidden') && simSystem.visualizer) {
-                simSystem.visualizer.onResize();
-            }
-        });
-
         function toggleSimPlay() {
-            simSystem.isPlaying = !simSystem.isPlaying;
+            isSimRunning = !isSimRunning;
+            updatePlayButtonUI();
+            if (isSimRunning) {
+                lastSimTimestamp = performance.now();
+                if (!simAnimFrameId) simAnimFrameId = requestAnimationFrame(simLoop);
+            }
+        }
+
+        function updatePlayButtonUI() {
             const btn = document.getElementById('sim-btn-play');
-            if (btn) {
-                if (simSystem.isPlaying) {
-                    btn.className = "px-2.5 sm:px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold flex items-center gap-1 shadow-sm";
-                    btn.innerHTML = `<i class="fa-solid fa-pause"></i> <span class="hidden sm:inline">Pause</span>`;
-                } else {
-                    btn.className = "px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold flex items-center gap-1 shadow-sm";
-                    btn.innerHTML = `<i class="fa-solid fa-play"></i> <span class="hidden sm:inline">Play</span>`;
-                }
+            if (!btn) return;
+            if (isSimRunning) {
+                btn.className = "px-2.5 sm:px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold flex items-center gap-1 shadow-sm";
+                btn.innerHTML = `<i class="fa-solid fa-pause"></i> <span class="hidden sm:inline">Pause</span>`;
+            } else {
+                btn.className = "px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold flex items-center gap-1 shadow-sm";
+                btn.innerHTML = `<i class="fa-solid fa-play"></i> <span class="hidden sm:inline">Play</span>`;
             }
         }
 
@@ -4065,275 +4161,237 @@
         }
 
         function resetSimCamera() {
-            if (simSystem.visualizer) simSystem.visualizer.resetCamera();
+            if (simVisualizer) simVisualizer.resetCamera();
         }
 
-        function clearSimSelection() {
-            if (simSystem.visualizer) simSystem.visualizer.clearSelection();
-        }
+        function resetSimAll() {
+            targetPedalAnimation = null;
+            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+            setVal('ctrl-pedal', 0);
+            setVal('ctrl-rpm', 850);
+            setVal('ctrl-load', 35);
+            setVal('ctrl-master-dia', 15.9);
+            setVal('ctrl-slave-dia', 20.6);
+            setVal('ctrl-pedal-ratio', 5.5);
+            setVal('ctrl-friction', 0.35);
+            setVal('ctrl-speed', 1.0);
+            setVal('ctrl-fault', 'none');
 
-        function toggleSelectedPartVisibility() {
-            if (simSystem.visualizer) simSystem.visualizer.toggleSelectedVisibility();
-        }
-
-        function showAllSimParts() {
-            if (simSystem.visualizer) simSystem.visualizer.showAllParts();
+            if (simGearbox) {
+                simGearbox.currentGear = 'N';
+                simGearbox.targetGear = 'N';
+                simGearbox.syncState = 'neutral';
+            }
+            updateGearButtonsUI('N');
+            setSimVisMode('normal');
+            if (simVisualizer) {
+                simVisualizer.showAllParts();
+                simVisualizer.clearSelection();
+                simVisualizer.resetCamera();
+            }
+            onSimParamChange();
         }
 
         function setSimVisMode(mode) {
             document.querySelectorAll('.sim-mode-btn').forEach(btn => {
-                if (btn.dataset.vismode === mode) {
-                    btn.className = "sim-mode-btn px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-900 text-white flex-shrink-0";
-                } else {
-                    btn.className = "sim-mode-btn px-2.5 py-1 rounded-md text-[11px] font-semibold bg-white text-slate-700 border border-slate-300 flex-shrink-0";
-                }
+                const isActive = btn.getAttribute('data-vismode') === mode;
+                btn.className = isActive
+                    ? "sim-mode-btn px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-900 text-white flex-shrink-0"
+                    : "sim-mode-btn px-2.5 py-1 rounded-md text-[11px] font-semibold bg-white text-slate-700 border border-slate-300 flex-shrink-0";
             });
-            if (simSystem.visualizer) simSystem.visualizer.setVisualizationMode(mode);
+            if (simVisualizer) simVisualizer.setVisualizationMode(mode);
+        }
+
+        function clearSimSelection() {
+            if (simVisualizer) simVisualizer.clearSelection();
+        }
+
+        function toggleSelectedPartVisibility() {
+            if (simVisualizer) simVisualizer.toggleSelectedVisibility();
+        }
+
+        function showAllSimParts() {
+            if (simVisualizer) simVisualizer.showAllParts();
         }
 
         function onSimSliderInput() {
-            const pedalEl = document.getElementById('ctrl-pedal');
-            if (!pedalEl) return;
-            const exactVal = Math.max(0, Math.min(100, Math.round(parseFloat(pedalEl.value) || 0)));
-            pedalEl.value = exactVal;
-            simSystem.isPedalAnimating = false;
-            simSystem.pedalTargetVal = exactVal;
-            simSystem.pedalCurrentVal = exactVal;
+            targetPedalAnimation = null;
             onSimParamChange();
         }
 
-        function animatePedalTo(targetVal) {
-            const exactTarget = Math.max(0, Math.min(100, Math.round(targetVal)));
-            simSystem.pedalTargetVal = exactTarget;
-            if (Math.abs(simSystem.pedalCurrentVal - exactTarget) < 0.01) {
-                simSystem.pedalCurrentVal = exactTarget;
-                simSystem.isPedalAnimating = false;
-                const pedalEl = document.getElementById('ctrl-pedal');
-                if (pedalEl) pedalEl.value = exactTarget;
-                onSimParamChange();
-            } else {
-                simSystem.isPedalAnimating = true;
-            }
+        function animatePedalTo(targetPct) {
+            targetPedalAnimation = targetPct;
         }
 
-        function requestGearShift(gear) {
-            const warningBanner = document.getElementById('shift-warning-banner');
-            const pedalPct = simSystem.hydraulic.pedalPct;
-            const releasePct = simSystem.hydraulic.effectiveReleasePct;
+        function onSimParamChange() {
+            if (!simHydraulic) return;
 
-            if (gear !== 'N' && (pedalPct < 70 || releasePct < 0.65)) {
-                if (warningBanner) {
-                    warningBanner.innerHTML = pedalPct < 70
-                        ? `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Injak pedal kopling minimal 70% sebelum memindahkan gigi!`
-                        : `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Gangguan hidrolik! Langkah pembebasan kopling kurang sehingga gigi menggeretak.`;
-                    warningBanner.classList.remove('hidden');
-                    setTimeout(() => warningBanner.classList.add('hidden'), 3800);
+            const pedalVal = parseFloat(document.getElementById('ctrl-pedal').value) || 0;
+            const rpmVal = parseFloat(document.getElementById('ctrl-rpm').value) || 850;
+            const loadVal = parseFloat(document.getElementById('ctrl-load').value) || 35;
+            const mDia = parseFloat(document.getElementById('ctrl-master-dia').value) || 15.9;
+            const sDia = parseFloat(document.getElementById('ctrl-slave-dia').value) || 20.6;
+            const pRatio = parseFloat(document.getElementById('ctrl-pedal-ratio').value) || 5.5;
+            const muVal = parseFloat(document.getElementById('ctrl-friction').value) || 0.35;
+            const speedVal = parseFloat(document.getElementById('ctrl-speed').value) || 1.0;
+            const faultVal = document.getElementById('ctrl-fault').value || 'none';
+
+            simHydraulic.pedalPct = pedalVal;
+            simHydraulic.masterDiaMm = mDia;
+            simHydraulic.slaveDiaMm = sDia;
+            simHydraulic.pedalRatio = pRatio;
+            simHydraulic.fault = faultVal;
+
+            simDynamics.engineRpm = rpmVal;
+            simDynamics.frictionCoeff = muVal;
+
+            const lblPedal = document.getElementById('lbl-pedal-pct');
+            if (lblPedal) {
+                const stateTxt = pedalVal === 0 ? "Dilepas" : (pedalVal >= 80 ? "Diinjak Penuh" : "Setengah Kopling");
+                lblPedal.innerText = `${Math.round(pedalVal)}% (${stateTxt})`;
+            }
+            const setTxt = (id, t) => { const el = document.getElementById(id); if (el) el.innerText = t; };
+            setTxt('lbl-rpm', Math.round(rpmVal));
+            setTxt('lbl-load', `${Math.round(loadVal)} Nm`);
+            setTxt('lbl-master-dia', `${mDia.toFixed(1)} mm`);
+            setTxt('lbl-slave-dia', `${sDia.toFixed(1)} mm`);
+            setTxt('lbl-pedal-ratio', `${pRatio.toFixed(1)} : 1`);
+            setTxt('lbl-friction', muVal.toFixed(2));
+            setTxt('lbl-speed', `${speedVal.toFixed(1)}x`);
+
+            const faultDescriptions = {
+                'none': "Sistem kopling hidrolik dan transmisi bekerja dalam kondisi optimal sesuai spesifikasi pabrikan.",
+                'air_in_line': "Gelembung udara terkompresi di pipa hidrolik! Langkah slave cylinder berkurang drastis sehingga kopling tidak bebas penuh (clutch dragging).",
+                'pipe_leak': "Kebocoran saluran pipa hidrolik menyebabkan tekanan Pascal turun drastis dan minyak keluar dari sistem.",
+                'master_seal': "Seal piston master cylinder bocor internal; tekanan fluida tidak terbangun sempurna meski pedal diinjak penuh.",
+                'slave_seal': "Seal slave cylinder aus menyebabkan kehilangan tekanan & langkah dorong garpu pembebas tidak maksimal.",
+                'weak_return': "Return spring melemah; pedal kopling lambat kembali ke posisi bebas setelah dilepas.",
+                'weak_diaphragm': "Pegas diafragma melemah; gaya jepit pressure plate berkurang sehingga kopling mudah selip pada beban tinggi.",
+                'worn_disc': "Ketebalan kanvas kopling menipis; kapasitas gesek turun dan kopling mudah selip saat akselerasi.",
+                'clutch_slip': "Permukaan kampas kopling terkontaminasi oli! Koefisien gesek anjlok drastis menyebabkan slip berat.",
+                'worn_sync': "Synchronizer ring aus; proses penyamaan putaran roda gigi melambat dan rentan terjadi gear clash.",
+                'damaged_gear': "Profil roda gigi transmisi mengalami keausan; timbul getaran dan suara kasar saat beban disalurkan."
+            };
+            setTxt('lbl-fault-effect', faultDescriptions[faultVal] || faultDescriptions['none']);
+        }
+
+        function requestGearShift(targetGear) {
+            if (!simGearbox || !simHydraulic) return;
+            const warnBanner = document.getElementById('shift-warning-banner');
+            const gearStatus = document.getElementById('lbl-gear-status');
+
+            // Wajib injak pedal kopling minimal 70% untuk berpindah dari/ke gigi percepatan
+            const isNeutralShift = (targetGear === 'N' && simGearbox.currentGear === 'N');
+            if (!isNeutralShift && simHydraulic.pedalPct < 70) {
+                if (warnBanner) {
+                    warnBanner.classList.remove('hidden');
+                    setTimeout(() => warnBanner.classList.add('hidden'), 3200);
+                }
+                if (gearStatus) {
+                    gearStatus.className = "text-[10px] font-bold text-red-600";
+                    gearStatus.innerText = "Kopling Belum Diinjak!";
                 }
                 return;
             }
 
-            if (warningBanner) warningBanner.classList.add('hidden');
-            simSystem.gearbox.targetGear = gear;
-            updateGearButtonsUI(gear);
+            if (warnBanner) warnBanner.classList.add('hidden');
+            simGearbox.targetGear = targetGear;
+            updateGearButtonsUI(targetGear);
         }
 
         function updateGearButtonsUI(activeGear) {
-            document.querySelectorAll('.gear-btn').forEach(btn => {
-                const g = btn.id.replace('gear-btn-', '');
+            ['R', '1', '2', '3', '4', '5', 'N'].forEach(g => {
+                const btn = document.getElementById(`gear-btn-${g}`);
+                if (!btn) return;
                 if (g === activeGear) {
-                    if (g === 'N') {
-                        btn.className = "gear-btn gear-btn-active col-span-4 py-1.5 rounded-lg bg-slate-900 text-white font-tech font-extrabold text-[11px] ring-2 ring-orange-400";
-                    } else {
-                        btn.className = "gear-btn gear-btn-active py-2 rounded-lg bg-gradient-to-r from-red-600 to-orange-500 text-white font-tech font-extrabold text-xs shadow-md";
-                    }
+                    btn.className = g === 'N'
+                        ? "gear-btn gear-btn-active col-span-4 py-1.5 rounded-lg bg-slate-900 text-white font-tech font-extrabold text-[11px] ring-2 ring-orange-500"
+                        : "gear-btn gear-btn-active py-2 rounded-lg bg-gradient-to-r from-red-600 to-orange-500 text-white font-tech font-extrabold text-xs shadow";
                 } else {
-                    if (g === 'N') {
-                        btn.className = "gear-btn col-span-4 py-1.5 rounded-lg bg-slate-200 text-slate-700 hover:bg-slate-300 font-tech font-extrabold text-[11px]";
-                    } else if (g === 'R') {
-                        btn.className = "gear-btn py-2 rounded-lg bg-white border border-slate-300 font-tech font-extrabold text-xs text-red-600 hover:bg-red-50";
-                    } else {
-                        btn.className = "gear-btn py-2 rounded-lg bg-white border border-slate-300 font-tech font-extrabold text-xs text-slate-800 hover:bg-slate-200";
-                    }
+                    btn.className = g === 'N'
+                        ? "gear-btn col-span-4 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 font-tech font-extrabold text-[11px]"
+                        : `gear-btn py-2 rounded-lg bg-white border border-slate-300 font-tech font-extrabold text-xs ${g === 'R' ? 'text-red-600 hover:bg-red-50' : 'text-slate-800 hover:bg-slate-200'}`;
                 }
             });
         }
 
-        function onSimParamChange() {
-            const pedalEl = document.getElementById('ctrl-pedal');
-            const rpmEl = document.getElementById('ctrl-rpm');
-            const loadEl = document.getElementById('ctrl-load');
-            const mDiaEl = document.getElementById('ctrl-master-dia');
-            const sDiaEl = document.getElementById('ctrl-slave-dia');
-            const ratioEl = document.getElementById('ctrl-pedal-ratio');
-            const fricEl = document.getElementById('ctrl-friction');
-            const speedEl = document.getElementById('ctrl-speed');
-            const faultEl = document.getElementById('ctrl-fault');
-
-            if (!pedalEl) return;
-
-            const pedalVal = simSystem.isPedalAnimating
-                ? simSystem.pedalCurrentVal
-                : Math.max(0, Math.min(100, Math.round(parseFloat(pedalEl.value) || 0)));
-
-            simSystem.pedalCurrentVal = pedalVal;
-            if (!simSystem.isPedalAnimating) {
-                simSystem.pedalTargetVal = pedalVal;
-                pedalEl.value = pedalVal;
-            }
-
-            simSystem.hydraulic.pedalPct = pedalVal;
-            simSystem.dynamics.engineRpm = parseFloat(rpmEl.value);
-            simSystem.loadTorqueNm = parseFloat(loadEl.value);
-            simSystem.hydraulic.masterDiaMm = parseFloat(mDiaEl.value);
-            simSystem.hydraulic.slaveDiaMm = parseFloat(sDiaEl.value);
-            simSystem.hydraulic.pedalRatio = parseFloat(ratioEl.value);
-            simSystem.dynamics.frictionCoeff = parseFloat(fricEl.value);
-            simSystem.speedMultiplier = parseFloat(speedEl.value);
-            simSystem.hydraulic.fault = faultEl.value;
-
-            const pctDisplay = Math.round(pedalVal);
-            let statusTxt = "Dilepas";
-            if (pctDisplay === 0) statusTxt = "Dilepas";
-            else if (pctDisplay === 50) statusTxt = "Setengah Kopling";
-            else if (pctDisplay === 100) statusTxt = "Injak Penuh";
-            else if (pctDisplay >= 70) statusTxt = "Bebas Penuh";
-            else statusTxt = "Setengah Kopling";
-
-            document.getElementById('lbl-pedal-pct').innerText = `${pctDisplay}% (${statusTxt})`;
-            document.getElementById('lbl-rpm').innerText = `${simSystem.dynamics.engineRpm}`;
-            document.getElementById('lbl-load').innerText = `${simSystem.loadTorqueNm} Nm`;
-            document.getElementById('lbl-master-dia').innerText = `${simSystem.hydraulic.masterDiaMm.toFixed(1)} mm`;
-            document.getElementById('lbl-slave-dia').innerText = `${simSystem.hydraulic.slaveDiaMm.toFixed(1)} mm`;
-            document.getElementById('lbl-pedal-ratio').innerText = `${simSystem.hydraulic.pedalRatio.toFixed(1)} : 1`;
-            document.getElementById('lbl-friction').innerText = `${simSystem.dynamics.frictionCoeff.toFixed(2)}`;
-            document.getElementById('lbl-speed').innerText = `${simSystem.speedMultiplier.toFixed(1)}x`;
-
-            const faultDescriptions = {
-                'none': "Sistem kopling hidrolik dan transmisi bekerja dalam kondisi optimal sesuai spesifikasi pabrikan.",
-                'air_in_line': "Gelembung udara terkompresi di dalam saluran pipa: gaya pedal terasa empuk, langkah slave cylinder berkurang drastis sehingga kopling tidak bebas sempurna.",
-                'pipe_leak': "Kebocoran pada pipa hidrolik menyebabkan tekanan fluida jatuh dan langkah slave cylinder gagal membebaskan plat penekan.",
-                'master_seal': "Seal piston master cylinder bocor (internal bypass): tekanan fluida tidak terbentuk maksimal meski pedal diinjak penuh.",
-                'slave_seal': "Seal piston slave cylinder aus/bocor sehingga fluida merembes dan dorongan pada release fork melemah.",
-                'weak_return': "Return spring melemah sehingga pengembalian piston & release fork menjadi lambat.",
-                'weak_diaphragm': "Gaya jepit pegas diafragma turun ~50%, menyebabkan kapasitas torsi menurun dan kopling mudah selip saat beban tinggi.",
-                'worn_disc': "Ketebalan kanvas kopling menipis dan koefisien gesek menurun, memicu selip kopling saat akselerasi.",
-                'clutch_slip': "Permukaan kampas kopling terkontaminasi oli (koefisien gesek turun drastis): RPM mesin tinggi namun putaran output tertinggal (slip tinggi).",
-                'worn_sync': "Synchronizer baulk ring aus sehingga proses penyamaan kecepatan roda gigi berlangsung lambat dan kasar.",
-                'damaged_gear': "Profil roda gigi mengalami keausan/kerusakan yang menimbulkan getaran dan ketidakstabilan transmisi torsi."
-            };
-            const faultLbl = document.getElementById('lbl-fault-effect');
-            if (faultLbl) faultLbl.innerText = faultDescriptions[faultEl.value] || faultDescriptions['none'];
-        }
-
-        function resetSimAll() {
-            document.getElementById('ctrl-pedal').value = 0;
-            document.getElementById('ctrl-rpm').value = 850;
-            document.getElementById('ctrl-load').value = 35;
-            document.getElementById('ctrl-master-dia').value = 15.9;
-            document.getElementById('ctrl-slave-dia').value = 20.6;
-            document.getElementById('ctrl-pedal-ratio').value = 5.5;
-            document.getElementById('ctrl-friction').value = 0.35;
-            document.getElementById('ctrl-speed').value = 1.0;
-            document.getElementById('ctrl-fault').value = 'none';
-
-            simSystem.pedalTargetVal = 0;
-            simSystem.pedalCurrentVal = 0;
-            simSystem.isPedalAnimating = false;
-            simSystem.gearbox.currentGear = 'N';
-            simSystem.gearbox.targetGear = 'N';
-            simSystem.gearbox.syncState = 'neutral';
-            simSystem.gearbox.syncProgress = 1.0;
-            simSystem.gearbox.baulkFrictionProgress = 0.0;
-            simSystem.gearbox.railOffsets = { r34: 0, r12: 0, r5R: 0 };
-            updateGearButtonsUI('N');
-            setSimVisMode('normal');
-            showAllSimParts();
-            clearSimSelection();
-            resetSimCamera();
-            onSimParamChange();
-        }
-
         function updateTelemetryHUD() {
-            const h = simSystem.hydraulic;
-            const d = simSystem.dynamics;
-            const g = simSystem.gearbox;
+            if (!simHydraulic || !simDynamics || !simGearbox) return;
+            const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
 
-            const badge = document.getElementById('tele-gear-badge');
-            if (badge) badge.innerText = `GIGI: ${g.currentGear}`;
+            setTxt('tele-gear-badge', `GIGI: ${simGearbox.currentGear}`);
+            setTxt('tele-rpm-engine', `${Math.round(simDynamics.flywheelRpm)} RPM`);
+            setTxt('tele-rpm-input', `${Math.round(simDynamics.inputShaftRpm)} / ${Math.round(simGearbox.counterShaftRpm)}`);
+            setTxt('tele-rpm-output', `${Math.round(simGearbox.outputShaftRpm)} RPM`);
+            setTxt('tele-ratio', simGearbox.currentGear === 'N' ? 'Netral' : `${simGearbox.currentRatio.toFixed(2)} : 1`);
+            setTxt('tele-force', `${Math.round(simHydraulic.pedalForceN)} / ${Math.round(simHydraulic.slaveForceN)} N`);
+            setTxt('tele-pressure', `${simHydraulic.pressureMPa.toFixed(2)} MPa`);
+            setTxt('tele-stroke', `${simHydraulic.masterDispMm.toFixed(1)} / ${simHydraulic.slaveDispMm.toFixed(1)} mm`);
+            setTxt('tele-torque-slip', `${Math.round(simGearbox.outputTorqueNm)} Nm | ${Math.round(simDynamics.slipPct)}%`);
 
-            document.getElementById('tele-rpm-engine').innerText = `${Math.round(d.engineRpm)} RPM`;
-            document.getElementById('tele-rpm-input').innerText = `${Math.round(d.inputShaftRpm)} / ${Math.round(g.counterShaftRpm)}`;
-            document.getElementById('tele-rpm-output').innerText = `${Math.round(g.outputShaftRpm)} RPM`;
-            document.getElementById('tele-ratio').innerText = g.currentGear === 'N' ? 'Netral (0.00)' : `${g.currentRatio.toFixed(2)} : 1`;
-            document.getElementById('tele-force').innerText = `${Math.round(h.pedalForceN)} / ${Math.round(h.slaveForceN)} N`;
-            document.getElementById('tele-pressure').innerText = `${h.pressureMPa.toFixed(2)} MPa`;
-            document.getElementById('tele-stroke').innerText = `${h.masterDispMm.toFixed(1)} / ${h.slaveDispMm.toFixed(1)} mm`;
-            document.getElementById('tele-torque-slip').innerText = `${Math.round(g.outputTorqueNm)} Nm | ${Math.round(d.slipPct)}%`;
-
-            const gearStatusEl = document.getElementById('lbl-gear-status');
-            if (gearStatusEl) {
-                if (g.syncState === 'neutralizing') {
-                    gearStatusEl.innerText = "Melepas Gigi...";
-                    gearStatusEl.className = "text-[10px] font-bold text-slate-600";
-                } else if (g.syncState === 'baulking') {
-                    gearStatusEl.innerText = "Baulking (Menyamakan RPM)...";
-                    gearStatusEl.className = "text-[10px] font-bold text-amber-600";
-                } else if (g.syncState === 'locking') {
-                    gearStatusEl.innerText = "Locking Dog Teeth...";
-                    gearStatusEl.className = "text-[10px] font-bold text-blue-600";
-                } else if (h.pedalPct >= 70) {
-                    gearStatusEl.innerText = "Siap Pindah Gigi";
-                    gearStatusEl.className = "text-[10px] font-bold text-emerald-700";
+            const gearStatus = document.getElementById('lbl-gear-status');
+            if (gearStatus) {
+                if (simGearbox.syncState === 'neutralizing') {
+                    gearStatus.className = "text-[10px] font-bold text-slate-600";
+                    gearStatus.innerText = "Melepas Gigi Lama...";
+                } else if (simGearbox.syncState === 'baulking') {
+                    gearStatus.className = "text-[10px] font-bold text-amber-600";
+                    gearStatus.innerText = `Baulking Ring Gigi ${simGearbox.targetGear}...`;
+                } else if (simGearbox.syncState === 'locking') {
+                    gearStatus.className = "text-[10px] font-bold text-blue-600";
+                    gearStatus.innerText = `Mengunci Dog Teeth ${simGearbox.targetGear}...`;
+                } else if (simHydraulic.pedalPct >= 70) {
+                    gearStatus.className = "text-[10px] font-bold text-emerald-700";
+                    gearStatus.innerText = "Siap Pindah Gigi";
                 } else {
-                    gearStatusEl.innerText = g.currentGear === 'N' ? "Netral (Kopling Terhubung)" : `Terkunci Gigi ${g.currentGear}`;
-                    gearStatusEl.className = "text-[10px] font-bold text-blue-700";
+                    gearStatus.className = "text-[10px] font-bold text-slate-500";
+                    gearStatus.innerText = `Gigi ${simGearbox.currentGear} Terhubung`;
                 }
             }
         }
 
-        function simLoop(now) {
-            simSystem.animFrameId = requestAnimationFrame(simLoop);
-            const rawDt = Math.min(0.05, (now - simSystem.lastTime) / 1000);
-            simSystem.lastTime = now;
+        function simLoop(timestamp) {
+            if (!isSimRunning) {
+                simAnimFrameId = null;
+                return;
+            }
 
-            // Animasi halus tombol preset pedal (0%, 50%, 100%) dengan penguncian presisi pada nilai target
-            if (simSystem.isPedalAnimating) {
-                const pedalEl = document.getElementById('ctrl-pedal');
-                if (pedalEl) {
-                    const diff = simSystem.pedalTargetVal - simSystem.pedalCurrentVal;
-                    if (Math.abs(diff) <= 0.6) {
-                        simSystem.pedalCurrentVal = simSystem.pedalTargetVal;
-                        simSystem.isPedalAnimating = false;
-                        pedalEl.value = simSystem.pedalTargetVal;
-                        onSimParamChange();
+            const rawDt = Math.min(0.05, Math.max(0.001, (timestamp - lastSimTimestamp) / 1000));
+            lastSimTimestamp = timestamp;
+
+            const speedMult = parseFloat(document.getElementById('ctrl-speed')?.value) || 1.0;
+            const dt = rawDt * speedMult;
+            simTotalTime += dt;
+
+            // Animasi halus tombol preset pedal (0%, 50%, 100%)
+            if (targetPedalAnimation !== null) {
+                const slider = document.getElementById('ctrl-pedal');
+                if (slider) {
+                    const cur = parseFloat(slider.value);
+                    const diff = targetPedalAnimation - cur;
+                    if (Math.abs(diff) < 0.6) {
+                        slider.value = targetPedalAnimation;
+                        targetPedalAnimation = null;
                     } else {
-                        const step = Math.sign(diff) * Math.max(Math.abs(diff) * 0.25, 1.5);
-                        simSystem.pedalCurrentVal = Math.max(0, Math.min(100, simSystem.pedalCurrentVal + step));
-                        pedalEl.value = Math.round(simSystem.pedalCurrentVal);
-                        onSimParamChange();
+                        slider.value = cur + diff * Math.min(1, rawDt * 10);
                     }
+                    onSimParamChange();
                 }
             }
 
-            const dt = simSystem.isPlaying ? rawDt * simSystem.speedMultiplier : 0;
-            simSystem.totalTime += dt;
+            const loadTorque = parseFloat(document.getElementById('ctrl-load')?.value) || 35;
+            const faultVal = document.getElementById('ctrl-fault')?.value || 'none';
 
-            simSystem.hydraulic.update(dt);
-            simSystem.kinematics.update(simSystem.hydraulic, simSystem.hydraulic.fault);
-            simSystem.dynamics.update(dt, simSystem.kinematics, simSystem.gearbox, simSystem.loadTorqueNm, simSystem.hydraulic.fault);
-            simSystem.gearbox.update(dt, simSystem.dynamics, simSystem.hydraulic.fault);
+            simHydraulic.update(dt);
+            simKinematics.update(simHydraulic, faultVal);
+            simDynamics.update(dt, simKinematics, simGearbox, loadTorque, faultVal);
+            simGearbox.update(dt, simDynamics, faultVal);
 
-            if (simSystem.visualizer) {
-                simSystem.visualizer.updateVisuals(
-                    simSystem.hydraulic,
-                    simSystem.kinematics,
-                    simSystem.dynamics,
-                    simSystem.gearbox,
-                    simSystem.totalTime
-                );
-            }
-
+            simVisualizer.updateVisuals(simHydraulic, simKinematics, simDynamics, simGearbox, simTotalTime);
+            simVisualizer.render();
             updateTelemetryHUD();
+
+            simAnimFrameId = requestAnimationFrame(simLoop);
         }
     </script>
 
