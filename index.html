@@ -1174,6 +1174,8 @@
                 category: "Mekanisme Pembebas",
                 iconClass: "fa-solid fa-code-fork",
                 realImgs: [
+                    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTIyg-UEbg_hg6wXyksJKLyFfIFd67iKJAopEEQxRsGtkOpGRHcbOfJAJQ&s=10",
+                    "https://www.alfabb.com/attachments/p1070333-resize-jpg.244320/",
                     "https://www.chevelles.com/attachments/clutch-fork-angles-5-7-forward-jpg.616972/",
                     "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTbSFDhzdUYuS59toqdQFfwBIDsHtgeIYDW9u1f7PRlVZELN_d2uAAdzhc&s=10",
                     "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR-1OV8hNpzlMv0S29p2pfICURhqAwygQR4AToC31O6sA&s=10"
@@ -3056,16 +3058,26 @@
                     new THREE.Vector3(-2.35, 1.0, 1.35),
                     new THREE.Vector3(-1.85, 1.0, 1.35),
                     new THREE.Vector3(-1.55, -0.45, 1.35),
-                    new THREE.Vector3(-1.35, -1.78, 0.95),
-                    new THREE.Vector3(-1.05, -1.78, 0.78)
+                    new THREE.Vector3(-1.48, -1.68, 0.92),
+                    new THREE.Vector3(-1.48, -1.68, 0.45),
+                    new THREE.Vector3(-1.42, -1.68, 0.45)
                 ]);
                 this.pipeCurve = curve;
-                const tubeGeo = new THREE.TubeGeometry(curve, 48, 0.045, 12, false);
+                const tubeGeo = new THREE.TubeGeometry(curve, 56, 0.045, 12, false);
                 this.pipeTubeMat = new THREE.MeshStandardMaterial({
                     color: 0x38bdf8, transparent: true, opacity: 0.48, roughness: 0.15, metalness: 0.1
                 });
                 const tubeMesh = new THREE.Mesh(tubeGeo, this.pipeTubeMat);
                 pipeGroup.add(tubeMesh);
+
+                // Konektor Nepel / Fitting Sambungan Pipa ke Port Inlet Slave Cylinder
+                const fittingMesh = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.068, 0.068, 0.12, 8),
+                    new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.85, roughness: 0.25 })
+                );
+                fittingMesh.rotation.z = Math.PI / 2;
+                fittingMesh.position.set(-1.48, -1.68, 0.45);
+                pipeGroup.add(fittingMesh);
 
                 const particleGeo = new THREE.SphereGeometry(0.028, 10, 10);
                 for (let i = 0; i < 28; i++) {
