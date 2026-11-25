@@ -271,6 +271,53 @@
         #modal-cad-3d.cad-dark-theme #sim-telemetry-panel .border-slate-200 {
             border-color: #334155 !important;
         }
+        /* ===== FRAME ANIMASI AUTOPLAY MEKANISME KOPLING ===== */
+        .mech-anim-frame {
+            background: radial-gradient(circle at 22% 18%, rgba(30, 41, 59, 0.95), rgba(2, 6, 23, 0.98) 72%), #020617;
+        }
+        .mech-anim-frame svg text {
+            font-family: inherit;
+            letter-spacing: 0.02em;
+        }
+        /* Batasi ukuran animasi agar tidak terlalu besar */
+        .mech-anim-frame svg {
+            max-width: 460px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        /* Desktop: animasi sebaris dengan penjelasannya */
+        @media (min-width: 1024px) {
+            .mech-card-split {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+                column-gap: 1.25rem;
+                align-items: start;
+            }
+            .mech-card-split > .mech-anim-frame {
+                grid-column: 2;
+                grid-row: 1 / span 2;
+                margin-top: 0;
+            }
+            .mech-section-split {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+                column-gap: 1.5rem;
+                row-gap: 0;
+                align-items: start;
+            }
+            .mech-section-split > .mech-anim-frame {
+                grid-column: 2;
+                grid-row: 1 / span 2;
+                margin-top: 0;
+            }
+            .mech-section-split > .grid {
+                grid-column: 1;
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+        #sim-floating-wrap {
+            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+        }
     </style>
 
 
@@ -392,35 +439,6 @@
                  SUB-TAB 2: MEKANISME KOPLING, SIMULATOR CAD 3D & VIDEO PENJELASAN
                  =================================================================== -->
             <div id="subtab-content-mekanisme" class="hidden space-y-8">
-                <!-- BANNER PEMBUKA SIMULATOR CAD 3D LAYAR PENUH -->
-                <section class="bg-gradient-to-br from-slate-900 via-brand-card to-slate-950 rounded-2xl border border-brand-orange/40 p-6 sm:p-8 shadow-2xl relative overflow-hidden">
-                    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-                        <div class="space-y-2.5 max-w-2xl">
-                            <div class="flex flex-wrap items-center gap-2">
-                                <span class="px-3 py-1 bg-brand-red/20 border border-brand-red/40 text-brand-red text-xs font-bold rounded-full uppercase tracking-wider">
-                                    <i class="fa-solid fa-cube mr-1"></i> Laboratorium Virtual 3D CAD
-                                </span>
-                                <span class="px-3 py-1 bg-blue-950 border border-blue-700/60 text-blue-300 text-xs font-semibold rounded-full">
-                                    Mode Layar Penuh &amp; Hemat Performa
-                                </span>
-                            </div>
-                            <h2 class="text-xl sm:text-2xl font-extrabold font-tech text-white">
-                                Simulator 3D Kopling Hidrolik &amp; Transmisi Manual 5-Percepatan
-                            </h2>
-                            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                                Amati secara langsung kinematika lengkap mulai dari injakan <strong>Pedal Kopling</strong>, tekanan fluida <strong>Master &amp; Slave Cylinder</strong>, ungkitan <strong>Release Lever (Fork)</strong> pada <strong>Release Bearing</strong>, defleksi jari-jari tengah <strong>Diaphragm Spring</strong> yang mengangkat sisi luar <strong>Pressure Plate</strong> &amp; <strong>Clutch Disc</strong>, hingga perpindahan gigi <strong>Transmisi H-Pattern</strong>.
-                            </p>
-                        </div>
-
-                        <div class="w-full lg:w-auto flex flex-col sm:flex-row lg:flex-col gap-3 flex-shrink-0">
-                            <button type="button" onclick="openCadFullscreenModal()" class="w-full lg:w-auto px-6 py-4 rounded-xl bg-gradient-to-r from-brand-red to-brand-orange hover:from-red-600 hover:to-orange-600 text-white font-extrabold text-sm shadow-xl shadow-brand-red/30 transition-all active:scale-95 flex items-center justify-center gap-2.5">
-                                <i class="fa-solid fa-expand text-base"></i>
-                                <span>Buka Simulator Sistem Kopling</span>
-                            </button>
-                        </div>
-                    </div>
-                </section>
-                
                 <!-- PENJELASAN MEKANISME & EMBED YOUTUBE -->
                 <section class="bg-brand-card rounded-2xl border border-slate-800 p-6 sm:p-8 shadow-2xl space-y-6">
                     <div class="border-b border-slate-800 pb-4">
@@ -440,8 +458,8 @@
                     </div>
 
                     <!-- PENJELASAN DUA KONDISI UTAMA KOPLING -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                        <div class="bg-slate-900/80 border border-emerald-700/40 rounded-2xl p-5 space-y-3">
+                    <div class="grid grid-cols-1 gap-6 pt-2">
+                        <div class="mech-card-split bg-slate-900/80 border border-emerald-700/40 rounded-2xl p-5 space-y-3">
                             <div class="flex items-center gap-3">
                                 <span class="w-10 h-10 rounded-xl bg-emerald-950 border border-emerald-600/50 text-emerald-400 flex items-center justify-center font-bold">
                                     <i class="fa-solid fa-link"></i>
@@ -456,9 +474,96 @@
                                 <li><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i><strong>Pegas Diafragma Menekan:</strong> Sisi luar pegas diafragma mendorong kuat <em>pressure plate</em> ke arah depan menuju <em>flywheel</em>.</li>
                                 <li><i class="fa-solid fa-check text-emerald-400 mr-1.5"></i><strong>Kampas Kopling Terjepit:</strong> <em>Clutch disc</em> terjepit rapat di antara permukaan gesek <em>flywheel</em> dan <em>pressure plate</em>, sehingga putaran &amp; torsi mesin diteruskan 100% ke <em>input shaft</em> transmisi.</li>
                             </ul>
+
+                            <!-- ANIMASI AUTOPLAY: KOPLING ENGAGED (PEDAL DILEPAS) -->
+                            <div class="mech-anim-frame mt-3 rounded-xl border border-emerald-700/40 p-3">
+                                <div class="flex flex-wrap items-center justify-end gap-2 mb-2">
+                                    <span class="text-[10px] text-slate-400">Flywheel • Kampas • Plat berputar bersama</span>
+                                </div>
+                                <svg viewBox="0 0 560 300" class="w-full h-auto block" role="img" aria-label="Animasi kopling saat pedal dilepas: pedal kembali ke posisi bebas, release bearing mundur sehingga terbentuk celah bebas, pegas diafragma menekan plat penekan, kampas terjepit antara flywheel dan plat penekan, dan torsi mesin tersalurkan penuh ke transmisi">
+                                    <!-- AREA JEPITAN: TERJEPIT RAPAT -->
+                                    <rect x="44" y="50" width="46" height="120" rx="3" fill="#34d399" opacity="0.14">
+                                        <animate attributeName="opacity" values="0.07;0.2;0.07" dur="2.4s" repeatCount="indefinite"/>
+                                    </rect>
+
+                                    <!-- FLYWHEEL BERPUTAR -->
+                                    <rect x="18" y="38" width="24" height="144" rx="3" fill="#475569" stroke="#94a3b8" stroke-width="2"/>
+                                    <line x1="22" y1="60" x2="38" y2="60" stroke="#94a3b8" stroke-width="3" opacity="0.7"/>
+                                    <line x1="22" y1="110" x2="38" y2="110" stroke="#94a3b8" stroke-width="3" opacity="0.7"/>
+                                    <line x1="22" y1="160" x2="38" y2="160" stroke="#94a3b8" stroke-width="3" opacity="0.7"/>
+                                    <line x1="30" y1="42" x2="30" y2="178" stroke="#cbd5e1" stroke-width="2.5" stroke-dasharray="6 8" opacity="0.75">
+                                        <animate attributeName="stroke-dashoffset" values="0;-56" dur="1.1s" repeatCount="indefinite"/>
+                                    </line>
+
+                                    <!-- KAMPAS KOPLING IKUT BERPUTAR -->
+                                    <rect x="50" y="50" width="14" height="120" fill="#f77f00" stroke="#c2410c" stroke-width="2"/>
+                                    <line x1="57" y1="52" x2="57" y2="168" stroke="#7c2d12" stroke-width="4" stroke-dasharray="9 11">
+                                        <animate attributeName="stroke-dashoffset" values="0;-60" dur="1.1s" repeatCount="indefinite"/>
+                                    </line>
+
+                                    <!-- PLAT PENEKAN + PEGAS DIAFRAGMA: MENEKAN KE DEPAN -->
+                                    <rect x="72" y="50" width="18" height="120" fill="#64748b" stroke="#cbd5e1" stroke-width="2.5"/>
+                                    <polygon points="90,54 90,166 132,128 132,92" fill="rgba(247,127,0,0.14)" stroke="#f77f00" stroke-width="3" stroke-linejoin="round"/>
+
+                                    <!-- RELEASE BEARING MUNDUR: CELAH BEBAS -->
+                                    <rect x="142" y="86" width="20" height="44" rx="3" fill="#94a3b8" stroke="#e2e8f0" stroke-width="2"/>
+                                    <line x1="146" y1="96" x2="158" y2="96" stroke="#475569" stroke-width="2"/>
+                                    <line x1="146" y1="120" x2="158" y2="120" stroke="#475569" stroke-width="2"/>
+                                    <line x1="132" y1="108" x2="142" y2="108" stroke="#34d399" stroke-width="2" stroke-dasharray="3 3"/>
+                                    <text x="137" y="78" text-anchor="middle" font-size="8" fill="#34d399">free play</text>
+
+                                    <!-- RELEASE FORK POSISI ISTIRAHAT -->
+                                    <line x1="250" y1="190" x2="160" y2="116" stroke="#94a3b8" stroke-width="9" stroke-linecap="round"/>
+                                    <circle cx="160" cy="116" r="9" fill="#94a3b8" stroke="#e2e8f0" stroke-width="2"/>
+                                    <circle cx="250" cy="190" r="7" fill="#1e293b" stroke="#94a3b8" stroke-width="3"/>
+
+                                    <!-- PUSH ROD & SLAVE CYLINDER TANPA TEKANAN -->
+                                    <rect x="196" y="144" width="46" height="9" rx="4" fill="#7dd3fc"/>
+                                    <rect x="240" y="126" width="72" height="40" rx="6" fill="#0b1220" stroke="#38bdf8" stroke-width="2"/>
+                                    <rect x="248" y="134" width="8" height="24" rx="2" fill="#38bdf8"/>
+                                    <text x="276" y="182" text-anchor="middle" font-size="9" fill="#38bdf8">SLAVE CYLINDER</text>
+
+                                    <!-- SALURAN HIDROLIK TANPA ALIRAN -->
+                                    <path d="M176,233 C214,240 226,204 268,172" fill="none" stroke="#0ea5e9" stroke-width="7" stroke-linecap="round" opacity="0.35"/>
+                                    <path d="M176,233 C214,240 226,204 268,172" fill="none" stroke="#7dd3fc" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="9 13" opacity="0.5"/>
+
+                                    <!-- MASTER CYLINDER -->
+                                    <rect x="90" y="214" width="86" height="38" rx="6" fill="#0b1220" stroke="#38bdf8" stroke-width="2"/>
+                                    <rect x="112" y="222" width="10" height="22" rx="2" fill="#38bdf8"/>
+                                    <text x="133" y="268" text-anchor="middle" font-size="9" fill="#38bdf8">MASTER CYLINDER</text>
+
+                                    <!-- PEDAL KOPLING DILEPAS -->
+                                    <path d="M18,272 L54,272" stroke="#475569" stroke-width="6" stroke-linecap="round"/>
+                                    <line x1="36" y1="262" x2="74" y2="212" stroke="#cbd5e1" stroke-width="9" stroke-linecap="round"/>
+                                    <circle cx="76" cy="210" r="9" fill="#f77f00" stroke="#ffedd5" stroke-width="2"/>
+                                    <line x1="66" y1="222" x2="94" y2="236" stroke="#94a3b8" stroke-width="6" stroke-linecap="round"/>
+                                    <circle cx="36" cy="262" r="6" fill="#1e293b" stroke="#94a3b8" stroke-width="3"/>
+
+                                    <!-- TRANSMISI IKUT BERPUTAR -->
+                                    <g>
+                                        <animateTransform attributeName="transform" type="rotate" from="0 450 110" to="360 450 110" dur="2.4s" repeatCount="indefinite"/>
+                                        <circle cx="450" cy="110" r="26" fill="#0f172a" stroke="#22c55e" stroke-width="3"/>
+                                        <g stroke="#22c55e" stroke-width="4" stroke-linecap="round">
+                                            <line x1="450" y1="86" x2="450" y2="134"/>
+                                            <line x1="450" y1="86" x2="450" y2="134" transform="rotate(60 450 110)"/>
+                                            <line x1="450" y1="86" x2="450" y2="134" transform="rotate(120 450 110)"/>
+                                        </g>
+                                        <circle cx="450" cy="110" r="7" fill="#22c55e"/>
+                                    </g>
+                                    <text x="450" y="154" text-anchor="middle" font-size="9.5" fill="#94a3b8">TRANSMISI IKUT BERPUTAR</text>
+                                    <text x="450" y="52" text-anchor="middle" font-size="11.5" font-weight="700" fill="#34d399">TORSI 100% TERSALURKAN
+                                        <animate attributeName="opacity" values="0.45;1;0.45" dur="1.8s" repeatCount="indefinite"/>
+                                    </text>
+                                    <text x="96" y="192" font-size="9" fill="#34d399">TERJEPIT RAPAT</text>
+                                    <text x="86" y="294" text-anchor="middle" font-size="10" font-weight="700" fill="#34d399">PEDAL DILEPAS • CELAH BEBAS</text>
+                                </svg>
+                                <p class="text-[10px] text-slate-400 mt-2 leading-relaxed">
+                                    <i class="fa-solid fa-eye text-emerald-400 mr-1"></i>Perhatikan: tidak ada celah antara <em>flywheel</em>, kampas, dan plat penekan — ketiganya berputar dengan RPM yang sama sehingga seluruh torsi mesin mengalir ke poros input transmisi.
+                                </p>
+                            </div>
                         </div>
 
-                        <div class="bg-slate-900/80 border border-brand-orange/40 rounded-2xl p-5 space-y-3">
+                        <div class="mech-card-split bg-slate-900/80 border border-brand-orange/40 rounded-2xl p-5 space-y-3">
                             <div class="flex items-center gap-3">
                                 <span class="w-10 h-10 rounded-xl bg-amber-950 border border-brand-orange/50 text-brand-orange flex items-center justify-center font-bold">
                                     <i class="fa-solid fa-link-slash"></i>
@@ -473,6 +578,119 @@
                                 <li><i class="fa-solid fa-arrow-right text-brand-orange mr-1.5"></i><strong>Ungkitan Pegas Diafragma:</strong> <em>Release bearing</em> bergerak maju menekan ujung dalam (pusat) jari-jari pegas diafragma. Dengan bertumpu pada <em>pivot ring</em>, sisi luar pegas diafragma terangkat mundur.</li>
                                 <li><i class="fa-solid fa-arrow-right text-brand-orange mr-1.5"></i><strong>Plat Penekan Terangkat:</strong> <em>Strap drive</em> menarik <em>pressure plate</em> mundur menjauhi <em>flywheel</em>, membebaskan <em>clutch disc</em> sehingga perpindahan gigi transmisi dapat dilakukan tanpa tumbukan roda gigi.</li>
                             </ul>
+
+                            <!-- ANIMASI AUTOPLAY: KOPLING DISENGAGED (PEDAL DIINJAK) -->
+                            <div class="mech-anim-frame mt-3 rounded-xl border border-brand-orange/40 p-3">
+                                <div class="flex flex-wrap items-center justify-end gap-2 mb-2">
+                                    <span class="text-[10px] text-slate-400">Siklus 6 detik: injak → putus → lepas</span>
+                                </div>
+                                <svg viewBox="0 0 560 300" class="w-full h-auto block" role="img" aria-label="Animasi kopling saat pedal diinjak: pedal menekan master cylinder, fluida hidrolik mengalir ke slave cylinder, garpu pembebas mendorong release bearing, jari-jari pegas diafragma tertekan sehingga plat penekan menjauh dari kampas dan torsi terputus">
+                                    <!-- CELAH YANG TERBUKA SAAT DISENGAGED -->
+                                    <rect x="64" y="50" width="26" height="120" fill="#fb923c" opacity="0">
+                                        <animate attributeName="opacity" values="0;0;0.28;0.28;0;0" keyTimes="0;0.15;0.3;0.7;0.85;1" dur="6s" repeatCount="indefinite"/>
+                                    </rect>
+
+                                    <!-- FLYWHEEL -->
+                                    <rect x="18" y="38" width="24" height="144" rx="3" fill="#475569" stroke="#94a3b8" stroke-width="2"/>
+                                    <line x1="22" y1="60" x2="38" y2="60" stroke="#94a3b8" stroke-width="3" opacity="0.7"/>
+                                    <line x1="22" y1="110" x2="38" y2="110" stroke="#94a3b8" stroke-width="3" opacity="0.7"/>
+                                    <line x1="22" y1="160" x2="38" y2="160" stroke="#94a3b8" stroke-width="3" opacity="0.7"/>
+
+                                    <!-- KAMPAS KOPLING: BERPUTAR, LALU BERHENTI SAAT DISENGAGED -->
+                                    <rect x="50" y="50" width="14" height="120" fill="#f77f00" stroke="#c2410c" stroke-width="2"/>
+                                    <line x1="57" y1="52" x2="57" y2="168" stroke="#7c2d12" stroke-width="4" stroke-dasharray="9 11">
+                                        <animate attributeName="stroke-dashoffset" values="0;-60;-60;-60;0;0" keyTimes="0;0.28;0.3;0.7;0.85;1" dur="6s" repeatCount="indefinite"/>
+                                    </line>
+
+                                    <!-- PLAT PENEKAN + PEGAS DIAFRAGMA: TERANGKAT MENJAUHI KAMPAS -->
+                                    <g>
+                                        <animateTransform attributeName="transform" type="translate" values="0 0;0 0;18 0;18 0;0 0;0 0" keyTimes="0;0.15;0.3;0.7;0.85;1" dur="6s" repeatCount="indefinite"/>
+                                        <rect x="72" y="50" width="18" height="120" fill="#64748b" stroke="#cbd5e1" stroke-width="2.5"/>
+                                        <g>
+                                            <animateTransform attributeName="transform" type="rotate" values="0 90 110;0 90 110;6 90 110;6 90 110;0 90 110;0 90 110" keyTimes="0;0.15;0.3;0.7;0.85;1" dur="6s" repeatCount="indefinite"/>
+                                            <polygon points="90,54 90,166 132,128 132,92" fill="rgba(247,127,0,0.14)" stroke="#f77f00" stroke-width="3" stroke-linejoin="round"/>
+                                        </g>
+                                    </g>
+
+                                    <!-- RELEASE BEARING: MAJU MENEKAN JARI-JARI PEGAS -->
+                                    <g>
+                                        <animateTransform attributeName="transform" type="translate" values="0 0;0 0;-14 0;-14 0;0 0;0 0" keyTimes="0;0.15;0.3;0.7;0.85;1" dur="6s" repeatCount="indefinite"/>
+                                        <rect x="142" y="86" width="20" height="44" rx="3" fill="#94a3b8" stroke="#e2e8f0" stroke-width="2"/>
+                                        <line x1="146" y1="96" x2="158" y2="96" stroke="#475569" stroke-width="2"/>
+                                        <line x1="146" y1="120" x2="158" y2="120" stroke="#475569" stroke-width="2"/>
+                                    </g>
+
+                                    <!-- RELEASE FORK BERPUTAR MENDORONG BEARING -->
+                                    <g>
+                                        <animateTransform attributeName="transform" type="rotate" values="0 250 190;0 250 190;-7 250 190;-7 250 190;0 250 190;0 250 190" keyTimes="0;0.15;0.3;0.7;0.85;1" dur="6s" repeatCount="indefinite"/>
+                                        <line x1="250" y1="190" x2="160" y2="116" stroke="#94a3b8" stroke-width="9" stroke-linecap="round"/>
+                                        <circle cx="160" cy="116" r="9" fill="#94a3b8" stroke="#e2e8f0" stroke-width="2"/>
+                                        <circle cx="250" cy="190" r="7" fill="#1e293b" stroke="#94a3b8" stroke-width="3"/>
+                                    </g>
+
+                                    <!-- PUSH ROD & SLAVE CYLINDER -->
+                                    <g>
+                                        <animateTransform attributeName="transform" type="translate" values="0 0;0 0;-10 0;-10 0;0 0;0 0" keyTimes="0;0.15;0.3;0.7;0.85;1" dur="6s" repeatCount="indefinite"/>
+                                        <rect x="196" y="144" width="46" height="9" rx="4" fill="#7dd3fc"/>
+                                    </g>
+                                    <rect x="240" y="126" width="72" height="40" rx="6" fill="#0b1220" stroke="#38bdf8" stroke-width="2"/>
+                                    <rect x="248" y="134" width="8" height="24" rx="2" fill="#38bdf8">
+                                        <animate attributeName="x" values="248;248;258;258;248;248" keyTimes="0;0.15;0.3;0.7;0.85;1" dur="6s" repeatCount="indefinite"/>
+                                    </rect>
+                                    <text x="276" y="182" text-anchor="middle" font-size="9" fill="#38bdf8">SLAVE CYLINDER</text>
+
+                                    <!-- SALURAN HIDROLIK DENGAN ALIRAN FLUIDA -->
+                                    <path id="disHosePath" d="M176,233 C214,240 226,204 268,172" fill="none" stroke="#0ea5e9" stroke-width="7" stroke-linecap="round" opacity="0.55"/>
+                                    <path d="M176,233 C214,240 226,204 268,172" fill="none" stroke="#7dd3fc" stroke-width="4" stroke-linecap="round" stroke-dasharray="9 13">
+                                        <animate attributeName="stroke-dashoffset" values="0;-66" dur="1.1s" repeatCount="indefinite"/>
+                                    </path>
+
+                                    <!-- MASTER CYLINDER -->
+                                    <rect x="90" y="214" width="86" height="38" rx="6" fill="#0b1220" stroke="#38bdf8" stroke-width="2"/>
+                                    <rect x="112" y="222" width="10" height="22" rx="2" fill="#38bdf8">
+                                        <animate attributeName="x" values="112;112;126;126;112;112" keyTimes="0;0.15;0.3;0.7;0.85;1" dur="6s" repeatCount="indefinite"/>
+                                    </rect>
+                                    <text x="133" y="268" text-anchor="middle" font-size="9" fill="#38bdf8">MASTER CYLINDER</text>
+
+                                    <!-- PEDAL KOPLING -->
+                                    <path d="M18,272 L54,272" stroke="#475569" stroke-width="6" stroke-linecap="round"/>
+                                    <g>
+                                        <animateTransform attributeName="transform" type="rotate" values="0 36 262;0 36 262;14 36 262;14 36 262;0 36 262;0 36 262" keyTimes="0;0.15;0.3;0.7;0.85;1" dur="6s" repeatCount="indefinite"/>
+                                        <line x1="36" y1="262" x2="74" y2="212" stroke="#cbd5e1" stroke-width="9" stroke-linecap="round"/>
+                                        <circle cx="76" cy="210" r="9" fill="#f77f00" stroke="#ffedd5" stroke-width="2"/>
+                                        <line x1="66" y1="222" x2="94" y2="236" stroke="#94a3b8" stroke-width="6" stroke-linecap="round"/>
+                                    </g>
+                                    <circle cx="36" cy="262" r="6" fill="#1e293b" stroke="#94a3b8" stroke-width="3"/>
+
+                                    <!-- GIGI TRANSMISI: BERHENTI SAAT TORSI TERPUTUS -->
+                                    <g>
+                                        <animateTransform attributeName="transform" type="rotate" values="0 450 110;40 450 110;40 450 110;40 450 110;40 450 110;250 450 110" keyTimes="0;0.15;0.3;0.7;0.85;1" dur="6s" repeatCount="indefinite"/>
+                                        <circle cx="450" cy="110" r="26" fill="#0f172a" stroke="#475569" stroke-width="3"/>
+                                        <g stroke="#475569" stroke-width="4" stroke-linecap="round">
+                                            <line x1="450" y1="86" x2="450" y2="134"/>
+                                            <line x1="450" y1="86" x2="450" y2="134" transform="rotate(60 450 110)"/>
+                                            <line x1="450" y1="86" x2="450" y2="134" transform="rotate(120 450 110)"/>
+                                        </g>
+                                    </g>
+                                    <text x="450" y="154" text-anchor="middle" font-size="9.5" fill="#94a3b8">TRANSMISI BEBAS</text>
+                                    <text x="450" y="52" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fb923c">TORSI TERPUTUS
+                                        <animate attributeName="opacity" values="0.5;0.5;1;1;0.5;0.5" keyTimes="0;0.15;0.3;0.7;0.85;1" dur="6s" repeatCount="indefinite"/>
+                                    </text>
+                                    <text x="100" y="192" font-size="9" fill="#fb923c" opacity="0">CELAH TERBUKA
+                                        <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.15;0.3;0.7;0.85;1" dur="6s" repeatCount="indefinite"/>
+                                    </text>
+
+                                    <!-- STATUS PEDAL -->
+                                    <text x="86" y="294" text-anchor="middle" font-size="10" font-weight="700" fill="#94a3b8">PEDAL DILEPAS
+                                        <animate attributeName="opacity" values="1;1;0;0;1;1" keyTimes="0;0.15;0.3;0.7;0.85;1" dur="6s" repeatCount="indefinite"/>
+                                    </text>
+                                    <text x="86" y="294" text-anchor="middle" font-size="10" font-weight="700" fill="#fb923c">PEDAL DIINJAK
+                                        <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.15;0.3;0.7;0.85;1" dur="6s" repeatCount="indefinite"/>
+                                    </text>
+                                </svg>
+                                <p class="text-[10px] text-slate-400 mt-2 leading-relaxed">
+                                    <i class="fa-solid fa-eye text-brand-orange mr-1"></i>Perhatikan urutan gayanya: <strong>pedal → master cylinder → minyak hidrolik → slave cylinder → release fork → release bearing → jari pegas diafragma</strong>. Saat bearing menekan, sisi luar pegas terangkat, plat penekan menjauh, dan kampas berhenti berputar.</p>
+                            </div>
                         </div>
                     </div>
 
@@ -489,6 +707,245 @@
                             <p class="text-xs text-slate-300 leading-relaxed">
                                 Penggerak tipe <strong>hidrolik</strong> memanfaatkan Hukum Pascal melalui minyak rem (DOT 3/DOT 4) pada <em>master cylinder</em> dan <em>slave cylinder</em> sehingga gaya injak pedal jauh lebih ringan, halus, tidak mudah macet akibat karat kabel, dan posisi peletakannya lebih fleksibel pada kendaraan modern.
                             </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===============================================================
+                     ANIMASI AUTOPLAY: PEGAS DIAFRAGMA VS PEGAS KOIL
+                     =============================================================== -->
+                <section class="mech-section-split bg-brand-card rounded-2xl border border-slate-800 p-5 sm:p-7 shadow-2xl space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                        <div>
+                            <h3 class="text-xl sm:text-2xl font-extrabold font-tech text-white">Jenis Kopling: Pegas Diafragma vs Pegas Koil</h3>
+                            <p class="text-xs text-slate-400 mt-1">Perhatikan bagaimana gaya tekan didistribusikan ke plat penekan pada kedua jenis pegas.</p>
+                        </div>
+                        <span class="text-[11px] text-slate-400"><i class="fa-solid fa-repeat mr-1"></i>Berulang otomatis ±3 detik</span>
+                    </div>
+
+                    <div class="mech-anim-frame rounded-xl border border-slate-700/60 p-3">
+                        <svg viewBox="0 0 560 250" class="w-full h-auto block" role="img" aria-label="Perbandingan animasi pegas diafragma yang menekan merata sepanjang keliling dengan pegas koil yang menekan hanya pada titik-titik tertentu">
+                            <defs>
+                                <marker id="mechForceArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto">
+                                    <path d="M0,0 L10,5 L0,10 z" fill="#34d399"/>
+                                </marker>
+                                <marker id="mechForceArrowSky" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto">
+                                    <path d="M0,0 L10,5 L0,10 z" fill="#38bdf8"/>
+                                </marker>
+                            </defs>
+                            <line x1="280" y1="14" x2="280" y2="236" stroke="#1e293b" stroke-width="1.5" stroke-dasharray="4 6"/>
+
+                            <!-- PANEL KIRI: PEGAS DIAFRAGMA -->
+                            <text x="140" y="28" text-anchor="middle" font-size="11.5" font-weight="700" fill="#f77f00">PEGAS DIAFRAGMA</text>
+                            <rect x="40" y="62" width="200" height="10" rx="4" fill="#334155"/>
+                            <rect x="44" y="186" width="192" height="16" rx="4" fill="#64748b"/>
+                            <path d="M40,186 Q140,96 240,186" fill="rgba(247,127,0,0.10)" stroke="#f77f00" stroke-width="5" stroke-linecap="round">
+                                <animate attributeName="d" values="M40,186 Q140,96 240,186;M40,186 Q140,130 240,186;M40,186 Q140,96 240,186" dur="3.2s" repeatCount="indefinite"/>
+                            </path>
+                            <rect x="124" y="112" width="32" height="12" rx="4" fill="#94a3b8">
+                                <animate attributeName="y" values="112;124;112" dur="3.2s" repeatCount="indefinite"/>
+                            </rect>
+                            <g stroke="#34d399" stroke-width="3" marker-end="url(#mechForceArrow)">
+                                <g opacity="0.9">
+                                    <animate attributeName="opacity" values="0.35;1;0.35" dur="1.6s" repeatCount="indefinite"/>
+                                    <line x1="56" y1="76" x2="56" y2="100"/>
+                                    <line x1="88" y1="76" x2="88" y2="100"/>
+                                    <line x1="120" y1="76" x2="120" y2="100"/>
+                                    <line x1="160" y1="76" x2="160" y2="100"/>
+                                    <line x1="192" y1="76" x2="192" y2="100"/>
+                                    <line x1="224" y1="76" x2="224" y2="100"/>
+                                </g>
+                            </g>
+                            <text x="140" y="216" text-anchor="middle" font-size="10.5" font-weight="700" fill="#34d399">Gaya tekan MERATA sepanjang 360°</text>
+                            <text x="140" y="232" text-anchor="middle" font-size="9" fill="#64748b">satu pegas • distribusi seragam</text>
+
+                            <!-- PANEL KANAN: PEGAS KOIL -->
+                            <text x="420" y="28" text-anchor="middle" font-size="11.5" font-weight="700" fill="#38bdf8">PEGAS KOIL</text>
+                            <rect x="300" y="62" width="240" height="10" rx="4" fill="#334155"/>
+                            <rect x="304" y="186" width="232" height="16" rx="4" fill="#64748b"/>
+                            <g stroke="#38bdf8" stroke-width="3" marker-end="url(#mechForceArrowSky)">
+                                <line x1="320" y1="52" x2="320" y2="78"><animate attributeName="opacity" values="0.3;1;0.3" dur="1.6s" begin="0s" repeatCount="indefinite"/></line>
+                                <line x1="360" y1="44" x2="360" y2="78"><animate attributeName="opacity" values="0.3;1;0.3" dur="1.6s" begin="0.2s" repeatCount="indefinite"/></line>
+                                <line x1="400" y1="50" x2="400" y2="78"><animate attributeName="opacity" values="0.3;1;0.3" dur="1.6s" begin="0.4s" repeatCount="indefinite"/></line>
+                                <line x1="440" y1="40" x2="440" y2="78"><animate attributeName="opacity" values="0.3;1;0.3" dur="1.6s" begin="0.6s" repeatCount="indefinite"/></line>
+                                <line x1="480" y1="54" x2="480" y2="78"><animate attributeName="opacity" values="0.3;1;0.3" dur="1.6s" begin="0.8s" repeatCount="indefinite"/></line>
+                                <line x1="520" y1="46" x2="520" y2="78"><animate attributeName="opacity" values="0.3;1;0.3" dur="1.6s" begin="1s" repeatCount="indefinite"/></line>
+                            </g>
+                            <g transform="translate(320,190)"><g><animateTransform attributeName="transform" type="scale" values="1 1;1 0.78;1 1" dur="3.2s" repeatCount="indefinite"/><path d="M0,0 L10,-12 L-10,-24 L10,-36 L-10,-48 L10,-60 L-10,-72 L10,-84 L-10,-96 L0,-104" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linejoin="round"/></g></g>
+                            <g transform="translate(360,190)"><g><animateTransform attributeName="transform" type="scale" values="1 1;1 0.72;1 1" dur="3.2s" repeatCount="indefinite"/><path d="M0,0 L10,-12 L-10,-24 L10,-36 L-10,-48 L10,-60 L-10,-72 L10,-84 L-10,-96 L0,-104" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linejoin="round"/></g></g>
+                            <g transform="translate(400,190)"><g><animateTransform attributeName="transform" type="scale" values="1 1;1 0.80;1 1" dur="3.2s" repeatCount="indefinite"/><path d="M0,0 L10,-12 L-10,-24 L10,-36 L-10,-48 L10,-60 L-10,-72 L10,-84 L-10,-96 L0,-104" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linejoin="round"/></g></g>
+                            <g transform="translate(440,190)"><g><animateTransform attributeName="transform" type="scale" values="1 1;1 0.70;1 1" dur="3.2s" repeatCount="indefinite"/><path d="M0,0 L10,-12 L-10,-24 L10,-36 L-10,-48 L10,-60 L-10,-72 L10,-84 L-10,-96 L0,-104" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linejoin="round"/></g></g>
+                            <g transform="translate(480,190)"><g><animateTransform attributeName="transform" type="scale" values="1 1;1 0.76;1 1" dur="3.2s" repeatCount="indefinite"/><path d="M0,0 L10,-12 L-10,-24 L10,-36 L-10,-48 L10,-60 L-10,-72 L10,-84 L-10,-96 L0,-104" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linejoin="round"/></g></g>
+                            <g transform="translate(520,190)"><g><animateTransform attributeName="transform" type="scale" values="1 1;1 0.74;1 1" dur="3.2s" repeatCount="indefinite"/><path d="M0,0 L10,-12 L-10,-24 L10,-36 L-10,-48 L10,-60 L-10,-72 L10,-84 L-10,-96 L0,-104" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linejoin="round"/></g></g>
+                            <text x="420" y="216" text-anchor="middle" font-size="10.5" font-weight="700" fill="#38bdf8">Titik tekan TERPISAH → kurang merata</text>
+                            <text x="420" y="232" text-anchor="middle" font-size="9" fill="#64748b">banyak pegas • rawan lemas satu per satu</text>
+                        </svg>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-slate-900/70 border border-brand-orange/30 rounded-xl p-4 space-y-2">
+                            <h4 class="text-xs font-bold text-brand-orange uppercase">Pegas Diafragma (Diaphragm Spring)</h4>
+                            <ul class="space-y-1.5 text-[11px] text-slate-300 leading-relaxed">
+                                <li><i class="fa-solid fa-check text-emerald-400 mr-1"></i><strong>Tekanan merata 360°:</strong> satu pegas berbentuk piring/kerucut menekan seluruh keliling plat penekan.</li>
+                                <li><i class="fa-solid fa-check text-emerald-400 mr-1"></i><strong>Gaya pedal ringan:</strong> rasio jari-jari jari-jari pegas memberi keuntungan mekanis lebih besar.</li>
+                                <li><i class="fa-solid fa-check text-emerald-400 mr-1"></i><strong>Bebas gaya sentrifugal:</strong> tidak ada massa pegas yang terlempar keluar pada RPM tinggi, sehingga tekanan kopling tetap stabil.</li>
+                                <li><i class="fa-solid fa-check text-emerald-400 mr-1"></i><strong>Konstruksi ringkas:</strong> komponen lebih sedikit, lebih ringan, dan mudah disetel.</li>
+                            </ul>
+                        </div>
+                        <div class="bg-slate-900/70 border border-sky-700/40 rounded-xl p-4 space-y-2">
+                            <h4 class="text-xs font-bold text-sky-400 uppercase">Pegas Koil (Coil Spring)</h4>
+                            <ul class="space-y-1.5 text-[11px] text-slate-300 leading-relaxed">
+                                <li><i class="fa-solid fa-circle-dot text-sky-400 mr-1"></i><strong>Titik tekan terpisah:</strong> 4–12 pegas koil menekan di titik-titik tertentu sehingga beban plat penekan kurang merata.</li>
+                                <li><i class="fa-solid fa-circle-dot text-sky-400 mr-1"></i><strong>Gaya pedal lebih berat:</strong> dibutuhkan pegas banyak dan kuat untuk menahan torsi besar.</li>
+                                <li><i class="fa-solid fa-circle-dot text-sky-400 mr-1"></i><strong>Terpengaruh putaran:</strong> gaya sentrifugal pada RPM tinggi menambah tekanan pegas secara tidak seragam.</li>
+                                <li><i class="fa-solid fa-circle-dot text-sky-400 mr-1"></i><strong>Perawatan:</strong> pegas dapat lemas atau retak satu per satu sehingga kopling slip.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===============================================================
+                     ANIMASI AUTOPLAY: PENGGERAK HIDROLIK VS MEKANIS (KABEL)
+                     =============================================================== -->
+                <section class="mech-section-split bg-brand-card rounded-2xl border border-slate-800 p-5 sm:p-7 shadow-2xl space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                        <div>
+                            <h3 class="text-xl sm:text-2xl font-extrabold font-tech text-white">Tipe Penggerak Kopling: Hidrolik vs Mekanis</h3>
+                            <p class="text-xs text-slate-400 mt-1">Bandingkan jalur gaya dari pedal sampai mekanisme pembebas pada kedua tipe penggerak.</p>
+                        </div>
+                        <span class="text-[11px] text-slate-400"><i class="fa-solid fa-repeat mr-1"></i>Berulang otomatis ±5 detik</span>
+                    </div>
+
+                    <div class="mech-anim-frame rounded-xl border border-slate-700/60 p-3">
+                        <svg viewBox="0 0 560 360" class="w-full h-auto block" role="img" aria-label="Animasi penggerak kopling hidrolik dengan aliran fluida dari master cylinder ke slave cylinder dibandingkan penggerak mekanis dengan kabel baja yang ditarik pedal dan menimbulkan gesekan">
+                            <defs>
+                                <marker id="hydFlowArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                                    <path d="M0,0 L10,5 L0,10 z" fill="#38bdf8"/>
+                                </marker>
+                            </defs>
+
+                            <!-- BARIS 1: HIDROLIK -->
+                            <text x="16" y="26" font-size="12" font-weight="700" fill="#38bdf8">PENGGERAK HIDROLIK</text>
+                            <text x="16" y="42" font-size="9.5" fill="#64748b">Hukum Pascal • minyak rem DOT 3 / DOT 4</text>
+
+                            <path d="M22,156 L52,156" stroke="#475569" stroke-width="5" stroke-linecap="round"/>
+                            <g>
+                                <animateTransform attributeName="transform" type="rotate" values="0 40 146;0 40 146;14 40 146;14 40 146;0 40 146" keyTimes="0;0.2;0.4;0.75;1" dur="5s" repeatCount="indefinite"/>
+                                <line x1="40" y1="146" x2="66" y2="104" stroke="#cbd5e1" stroke-width="9" stroke-linecap="round"/>
+                                <circle cx="68" cy="100" r="8" fill="#f77f00" stroke="#ffedd5" stroke-width="2"/>
+                                <line x1="70" y1="110" x2="96" y2="122" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"/>
+                            </g>
+                            <circle cx="40" cy="146" r="5" fill="#1e293b" stroke="#94a3b8" stroke-width="3"/>
+
+                            <rect x="96" y="106" width="72" height="32" rx="5" fill="#0b1220" stroke="#38bdf8" stroke-width="2"/>
+                            <rect x="102" y="112" width="9" height="20" rx="2" fill="#38bdf8">
+                                <animate attributeName="x" values="102;102;116;116;102" keyTimes="0;0.2;0.4;0.75;1" dur="5s" repeatCount="indefinite"/>
+                            </rect>
+                            <text x="132" y="152" text-anchor="middle" font-size="8.5" fill="#38bdf8">MASTER</text>
+
+                            <path d="M168,122 C204,122 212,84 252,84 C288,84 292,110 300,116" fill="none" stroke="#0ea5e9" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+                            <path d="M168,122 C204,122 212,84 252,84 C288,84 292,110 300,116" fill="none" stroke="#7dd3fc" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="8 12">
+                                <animate attributeName="stroke-dashoffset" values="0;-60" dur="1.1s" repeatCount="indefinite"/>
+                            </path>
+
+                            <rect x="300" y="98" width="72" height="36" rx="5" fill="#0b1220" stroke="#38bdf8" stroke-width="2"/>
+                            <rect x="310" y="106" width="9" height="22" rx="2" fill="#38bdf8">
+                                <animate attributeName="x" values="310;310;323;323;310" keyTimes="0;0.2;0.4;0.75;1" dur="5s" repeatCount="indefinite"/>
+                            </rect>
+                            <line x1="372" y1="116" x2="404" y2="116" stroke="#94a3b8" stroke-width="6" stroke-linecap="round"/>
+                            <text x="336" y="152" text-anchor="middle" font-size="8.5" fill="#38bdf8">SLAVE</text>
+
+                            <g>
+                                <animateTransform attributeName="transform" type="translate" values="0 0;0 0;8 0;8 0;0 0" keyTimes="0;0.2;0.4;0.75;1" dur="5s" repeatCount="indefinite"/>
+                                <rect x="404" y="96" width="26" height="40" rx="4" fill="#94a3b8" stroke="#e2e8f0" stroke-width="2"/>
+                            </g>
+                            <polygon points="446,80 446,152 486,124 486,106" fill="rgba(247,127,0,0.14)" stroke="#f77f00" stroke-width="3" stroke-linejoin="round"/>
+                            <text x="212" y="172" text-anchor="middle" font-size="10" font-weight="700" fill="#34d399">Gaya pedal RINGAN, tekanan diteruskan merata</text>
+
+                            <line x1="16" y1="186" x2="544" y2="186" stroke="#1e293b" stroke-width="1.5" stroke-dasharray="4 6"/>
+
+                            <!-- BARIS 2: MEKANIS (KABEL) -->
+                            <text x="16" y="208" font-size="12" font-weight="700" fill="#fb923c">PENGGERAK MEKANIS (KABEL)</text>
+                            <text x="16" y="224" font-size="9.5" fill="#64748b">kabel baja di dalam selubung • ada gesekan &amp; pemuaian</text>
+
+                            <path d="M18,330 L52,330" stroke="#475569" stroke-width="5" stroke-linecap="round"/>
+                            <g>
+                                <animateTransform attributeName="transform" type="rotate" values="0 40 320;0 40 320;16 40 320;16 40 320;0 40 320" keyTimes="0;0.2;0.4;0.75;1" dur="5s" repeatCount="indefinite"/>
+                                <line x1="40" y1="320" x2="66" y2="278" stroke="#cbd5e1" stroke-width="9" stroke-linecap="round"/>
+                                <circle cx="68" cy="274" r="8" fill="#f77f00" stroke="#ffedd5" stroke-width="2"/>
+                            </g>
+                            <circle cx="40" cy="320" r="5" fill="#1e293b" stroke="#94a3b8" stroke-width="3"/>
+
+                            <path d="M70,286 C120,286 128,250 186,250 C244,250 256,272 322,272 C382,272 396,256 428,256" fill="none" stroke="#475569" stroke-width="9" stroke-linecap="round"/>
+                            <path d="M70,286 C120,286 128,250 186,250 C244,250 256,272 322,272 C382,272 396,256 428,256" fill="none" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round" stroke-dasharray="18 12">
+                                <animate attributeName="stroke-dashoffset" values="0;-60" dur="1.2s" repeatCount="indefinite"/>
+                            </path>
+                            <path d="M286,294 L298,286 L308,296 L318,286" fill="none" stroke="#fb923c" stroke-width="2.5" stroke-linecap="round">
+                                <animate attributeName="opacity" values="0.35;1;0.35" dur="1.4s" repeatCount="indefinite"/>
+                            </path>
+                            <text x="302" y="312" text-anchor="middle" font-size="8.5" fill="#fb923c">gesekan kabel</text>
+
+                            <g>
+                                <animateTransform attributeName="transform" type="rotate" values="0 446 300;0 446 300;-9 446 300;-9 446 300;0 446 300" keyTimes="0;0.2;0.4;0.75;1" dur="5s" repeatCount="indefinite"/>
+                                <line x1="446" y1="300" x2="436" y2="258" stroke="#94a3b8" stroke-width="8" stroke-linecap="round"/>
+                            </g>
+                            <circle cx="446" cy="300" r="6" fill="#1e293b" stroke="#94a3b8" stroke-width="3"/>
+                            <path d="M430,312 L462,312" stroke="#475569" stroke-width="5" stroke-linecap="round"/>
+                            <text x="474" y="300" font-size="8.5" fill="#94a3b8">ke release</text>
+                            <text x="474" y="312" font-size="8.5" fill="#94a3b8">bearing</text>
+
+                            <text x="200" y="344" text-anchor="middle" font-size="10" font-weight="700" fill="#f87171">Gaya pedal LEBIH BERAT (melawan gesekan selubung kabel)</text>
+                        </svg>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-slate-900/70 border border-sky-700/40 rounded-xl p-4 space-y-2">
+                            <h4 class="text-xs font-bold text-sky-400 uppercase">Penggerak Hidrolik</h4>
+                            <ul class="space-y-1.5 text-[11px] text-slate-300 leading-relaxed">
+                                <li><i class="fa-solid fa-check text-emerald-400 mr-1"></i><strong>Hukum Pascal:</strong> tekanan fluida diteruskan sama besar ke seluruh arah, sehingga gaya dorong slave cylinder berlipat.</li>
+                                <li><i class="fa-solid fa-check text-emerald-400 mr-1"></i><strong>Gerakan halus &amp; self-adjusting:</strong> celah bebas release bearing menyesuaikan sendiri, tidak perlu penyetelan berkala.</li>
+                                <li><i class="fa-solid fa-check text-emerald-400 mr-1"></i><strong>Tahan karat &amp; fleksibel:</strong> tidak ada kabel yang macet; jalur bisa dibuat berbelok mengikuti ruang mesin.</li>
+                                <li><i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i><strong>Perawatan:</strong> wajib bebas udara palsu (<em>bleeding</em>) dan cek kebocoran seal bila pedal terasa spongy.</li>
+                            </ul>
+                        </div>
+                        <div class="bg-slate-900/70 border border-brand-orange/30 rounded-xl p-4 space-y-2">
+                            <h4 class="text-xs font-bold text-brand-orange uppercase">Penggerak Mekanis (Kabel)</h4>
+                            <ul class="space-y-1.5 text-[11px] text-slate-300 leading-relaxed">
+                                <li><i class="fa-solid fa-circle-dot text-brand-orange mr-1"></i><strong>Konstruksi sederhana:</strong> pedal, kabel baja, dan tuas pembebas — murah serta mudah diganti.</li>
+                                <li><i class="fa-solid fa-circle-dot text-brand-orange mr-1"></i><strong>Gaya pedal lebih berat:</strong> sebagian tenaga pedal habis untuk mengatasi gesekan di dalam selubung.</li>
+                                <li><i class="fa-solid fa-circle-dot text-brand-orange mr-1"></i><strong>Perlu penyetelan:</strong> celah bebas (<em>free play</em>) harus disetel ulang saat kabel memuai atau kampas aus.</li>
+                                <li><i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i><strong>Risiko:</strong> kabel berkarat/serat putus membuat kopling tidak bisa dibebaskan sama sekali.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+
+                <!-- BANNER PEMBUKA SIMULATOR CAD 3D LAYAR PENUH -->
+                <section id="sim-cad-box" class="bg-gradient-to-br from-slate-900 via-brand-card to-slate-950 rounded-2xl border border-brand-orange/40 p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+                    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                        <div class="space-y-2.5 max-w-2xl">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="px-3 py-1 bg-brand-red/20 border border-brand-red/40 text-brand-red text-xs font-bold rounded-full uppercase tracking-wider">
+                                    <i class="fa-solid fa-cube mr-1"></i> Laboratorium Virtual 3D CAD
+                                </span>
+                                <span class="px-3 py-1 bg-blue-950 border border-blue-700/60 text-blue-300 text-xs font-semibold rounded-full">
+                                    Mode Layar Penuh &amp; Hemat Performa
+                                </span>
+                            </div>
+                            <h2 class="text-xl sm:text-2xl font-extrabold font-tech text-white">
+                                Simulator 3D Kopling Hidrolik &amp; Transmisi Manual 5-Percepatan
+                            </h2>
+                            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                                Amati secara langsung kinematika lengkap mulai dari injakan <strong>Pedal Kopling</strong>, tekanan fluida <strong>Master &amp; Slave Cylinder</strong>, ungkitan <strong>Release Lever (Fork)</strong> pada <strong>Release Bearing</strong>, defleksi jari-jari tengah <strong>Diaphragm Spring</strong> yang mengangkat sisi luar <strong>Pressure Plate</strong> &amp; <strong>Clutch Disc</strong>, hingga perpindahan gigi <strong>Transmisi H-Pattern</strong>.
+                            </p>
+                        </div>
+
+                        <div class="w-full lg:w-auto flex flex-col sm:flex-row lg:flex-col gap-3 flex-shrink-0">
+                            <button type="button" onclick="openCadFullscreenModal()" class="w-full sm:w-auto flex-shrink-0 px-7 py-4 rounded-xl bg-gradient-to-r from-brand-red to-brand-orange hover:from-red-600 hover:to-orange-600 text-white font-extrabold text-sm shadow-xl shadow-brand-red/30 transition-all active:scale-95 flex items-center justify-center gap-2.5">
+                                <i class="fa-solid fa-expand text-base"></i>
+                                <span>Buka Simulator Sistem Kopling</span>
+                            </button>
                         </div>
                     </div>
                 </section>
@@ -659,6 +1116,19 @@
                 <p id="toast-warning-text" class="text-xs text-slate-200 mt-1 leading-relaxed"></p>
             </div>
         </div>
+    </div>
+
+    <!-- =========================================================================
+         TOMBOL MENGAMBANG BUKA SIMULATOR (TAMPIL SAAT MENGGULIR MATERI MEKANISME)
+         ========================================================================= -->
+    <div id="sim-floating-wrap" class="fixed inset-x-0 bottom-3 sm:bottom-5 z-[45] flex justify-center px-4 pointer-events-none opacity-0 translate-y-6 invisible" aria-hidden="true">
+        <button id="sim-floating-btn" type="button" onclick="openCadFullscreenModal()" class="pointer-events-auto w-full max-w-sm sm:max-w-md px-5 py-3.5 rounded-2xl bg-gradient-to-r from-brand-red to-brand-orange hover:from-red-600 hover:to-orange-600 text-white font-extrabold text-xs sm:text-sm shadow-2xl shadow-brand-red/40 ring-1 ring-white/20 transition-all active:scale-[0.98] flex items-center justify-between gap-3">
+            <span class="flex items-center gap-2">
+                <i class="fa-solid fa-cube text-base"></i>
+                <span>Buka Simulator Sistem Kopling</span>
+            </span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[11px] opacity-90"></i>
+        </button>
     </div>
 
     <!-- =========================================================================
@@ -1530,6 +2000,9 @@
             setupCarouselEvents();
             loadCacheOrInitializeQuiz();
             setupExamSecurityListeners();
+            updateFloatingSimButton();
+            window.addEventListener('scroll', requestFloatingSimUpdate, { passive: true });
+            window.addEventListener('resize', requestFloatingSimUpdate);
 
             const viewport = document.getElementById('carousel-viewport');
             const overlay = document.getElementById('swipe-overlay');
@@ -1566,6 +2039,8 @@
                 if (btnMekanisme) btnMekanisme.className = activeClass;
                 if (btnKomponen) btnKomponen.className = inactiveClass;
             }
+
+            updateFloatingSimButton();
         }
 
         function switchTab(tab) {
@@ -1602,6 +2077,7 @@
                 }
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            updateFloatingSimButton();
         }
 
         /* ==========================================================================
@@ -4088,12 +4564,59 @@
             }
         }
 
+        /* ==========================================================================
+           TOMBOL MENGAMBANG "BUKA SIMULATOR" PADA SUB-TAB MEKANISME
+           ========================================================================== */
+        function updateFloatingSimButton() {
+            const wrap = document.getElementById('sim-floating-wrap');
+            if (!wrap) return;
+
+            const materi = document.getElementById('section-materi');
+            const mekanisme = document.getElementById('subtab-content-mekanisme');
+            const endBox = document.getElementById('sim-cad-box');
+            const modal = document.getElementById('modal-cad-3d');
+
+            const materiVisible = !!materi && !materi.classList.contains('hidden');
+            const mekanismeVisible = !!mekanisme && !mekanisme.classList.contains('hidden');
+            const modalOpen = !!modal && !modal.classList.contains('hidden');
+
+            let shouldShow = materiVisible && mekanismeVisible && !modalOpen;
+
+            // Hilang saat box simulator 3D CAD sudah terlihat di layar
+            if (shouldShow && endBox) {
+                const rect = endBox.getBoundingClientRect();
+                const viewportH = window.innerHeight || document.documentElement.clientHeight;
+                if (rect.top < viewportH - 60 && rect.bottom > 0) shouldShow = false;
+            }
+
+            if (shouldShow) {
+                wrap.classList.remove('opacity-0', 'translate-y-6', 'invisible');
+                wrap.classList.add('opacity-100', 'translate-y-0');
+                wrap.setAttribute('aria-hidden', 'false');
+            } else {
+                wrap.classList.add('opacity-0', 'translate-y-6', 'invisible');
+                wrap.classList.remove('opacity-100', 'translate-y-0');
+                wrap.setAttribute('aria-hidden', 'true');
+            }
+        }
+
+        let floatingSimTicking = false;
+        function requestFloatingSimUpdate() {
+            if (floatingSimTicking) return;
+            floatingSimTicking = true;
+            requestAnimationFrame(() => {
+                floatingSimTicking = false;
+                updateFloatingSimButton();
+            });
+        }
+
         function openCadFullscreenModal() {
             const modal = document.getElementById('modal-cad-3d');
             if (!modal) return;
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             document.body.style.overflow = 'hidden';
+            updateFloatingSimButton();
 
             // Otomatis masuk mode layar penuh browser jika diizinkan
             if (modal.requestFullscreen && !document.fullscreenElement) {
@@ -4125,6 +4648,8 @@
             if (!simState.animFrameId) {
                 simState.animFrameId = requestAnimationFrame(simulationTick);
             }
+
+            updateFloatingSimButton();
         }
 
         function closeCadFullscreenModal() {
@@ -4149,6 +4674,8 @@
             if (document.fullscreenElement && document.fullscreenElement.id === 'modal-cad-3d') {
                 document.exitFullscreen().catch(() => {});
             }
+
+            updateFloatingSimButton();
         }
 
         function togglePureCadFullscreen() {
